@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
-import { redFlagDetection, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
+import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
 // No longer need parseResume here as candidate data comes from unified source
 import { useEffect, useState } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText } from "lucide-react";
@@ -60,7 +60,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     }
     setIsLoadingRedFlags(true);
     try {
-      const result = await redFlagDetection({ 
+      const result = await detectRedFlags({ 
         resumeText: candidate.resumeTextContent, 
         profileData: profileDiscoveryResult.summary 
       });
