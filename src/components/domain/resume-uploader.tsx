@@ -12,7 +12,7 @@ import { UploadCloud, Loader2, CheckCircle, User, Mail, Phone, BookOpen, Briefca
 
 export function ResumeUploader() {
   const [file, setFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState<string | null>(null);
+  const [resumeDataUri, setResumeDataUri] = useState<string | null>(null); // Changed from resumeText
   const [parsedData, setParsedData] = useState<ParseResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -23,27 +23,23 @@ export function ResumeUploader() {
       if (["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"].includes(selectedFile.type)) {
         setFile(selectedFile);
         setParsedData(null); // Reset previous results
-        
-        // Mock text extraction for client-side demo
-        // In a real app, this would be handled server-side or with a robust client-side library
+        setResumeDataUri(null); // Reset data URI
+
         const reader = new FileReader();
         reader.onload = async (e) => {
-          const text = e.target?.result as string;
-          // For PDF/DOCX, this text would be garbled without proper parsing libraries.
-          // We'll use a placeholder for non-text files for now.
-          if (selectedFile.type === "text/plain") {
-            setResumeText(text);
-          } else {
-             // This is a simplified mock. Real PDF/DOCX parsing is complex.
-            setResumeText(`Mock content for ${selectedFile.name}. Actual parsing of ${selectedFile.type} requires server-side processing or advanced libraries.`);
-            toast({
-              title: "Note: Mock Content",
-              description: `For ${selectedFile.type} files, content is mocked. Full parsing requires backend processing.`,
-              variant: "default",
-            })
-          }
+          const dataUri = e.target?.result as string;
+          setResumeDataUri(dataUri);
         };
-        reader.readAsText(selectedFile);
+        reader.onerror = () => {
+          toast({
+            title: "File Read Error",
+            description: "Could not read the selected file.",
+            variant: "destructive",
+          });
+          setFile(null);
+          setResumeDataUri(null);
+        }
+        reader.readAsDataURL(selectedFile); // Read as Data URL for all file types
 
       } else {
         toast({
@@ -52,16 +48,16 @@ export function ResumeUploader() {
           variant: "destructive",
         });
         setFile(null);
-        setResumeText(null);
+        setResumeDataUri(null);
       }
     }
   };
 
   const handleParseResume = async () => {
-    if (!file || !resumeText) {
+    if (!file || !resumeDataUri) { // Check for resumeDataUri
       toast({
-        title: "No File Selected",
-        description: "Please select a resume file to parse.",
+        title: "No File Selected or Ready",
+        description: "Please select a resume file and wait for it to be ready for parsing.",
         variant: "destructive",
       });
       return;
@@ -71,11 +67,12 @@ export function ResumeUploader() {
     setParsedData(null);
 
     try {
-      const result = await parseResume({ resumeText });
+      // Pass resumeDataUri to the flow
+      const result = await parseResume({ resumeDataUri }); 
       setParsedData(result);
       toast({
-        title: "Resume Parsed Successfully",
-        description: `Extracted information for ${result.name || 'candidate'}.`,
+        title: "Resume Parsing Attempted",
+        description: result.name ? `Extracted information for ${result.name}.` : "AI attempted to parse the resume.",
         variant: "default",
       });
     } catch (error) {
@@ -127,7 +124,7 @@ export function ResumeUploader() {
               onChange={handleFileChange}
               className="flex-grow rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
-            <Button onClick={handleParseResume} disabled={!file || isLoading} className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button onClick={handleParseResume} disabled={!file || isLoading || !resumeDataUri} className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground">
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (

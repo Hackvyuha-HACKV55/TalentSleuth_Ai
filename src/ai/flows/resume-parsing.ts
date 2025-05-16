@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview Parses a resume and extracts key information.
+ * @fileOverview Parses a resume and extracts key information using its content provided as a Data URI.
  *
  * - parseResume - A function that handles the resume parsing process.
  * - ParseResumeInput - The input type for the parseResume function.
@@ -13,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ParseResumeInputSchema = z.object({
-  resumeText: z.string().describe('The text content of the resume to parse.'),
+  resumeDataUri: z.string().describe("The resume file content as a data URI, including MIME type and Base64 encoded data. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type ParseResumeInput = z.infer<typeof ParseResumeInputSchema>;
 
@@ -37,7 +37,7 @@ const parseResumePrompt = ai.definePrompt({
   input: {schema: ParseResumeInputSchema},
   output: {schema: ParseResumeOutputSchema},
   prompt: `You are an AI assistant that extracts information from resumes.
-Carefully analyze the "Resume Text" provided below. Your task is to extract the specified fields.
+Carefully analyze the "Resume Document Content" provided below. Your task is to extract the specified fields.
 
 - Name: The full name of the candidate.
 - Email: The primary email address.
@@ -47,10 +47,10 @@ Carefully analyze the "Resume Text" provided below. Your task is to extract the 
 - Skills: A list or summary of their skills.
 - Certifications: Any relevant certifications.
 
-Resume Text:
-{{{resumeText}}}
+Resume Document Content:
+{{media url=resumeDataUri}}
 
-If any piece of information cannot be found in the "Resume Text", or if the text does not appear to be a valid resume, return an empty string for that field or a concise "Not found" message. Do NOT return placeholder type names like 'string' or 'object'. Provide only the extracted information as per the output schema.
+If any piece of information cannot be found in the "Resume Document Content", or if the document does not appear to be a valid resume, return an empty string for that field or a concise "Not found" message. Do NOT return placeholder type names like 'string' or 'object'. Provide only the extracted information as per the output schema.
   `,
 });
 
@@ -60,7 +60,7 @@ const parseResumeFlow = ai.defineFlow(
     inputSchema: ParseResumeInputSchema,
     outputSchema: ParseResumeOutputSchema,
   },
-  async input => {
+  async (input: ParseResumeInput) => { // Explicitly type input here
     const {output} = await parseResumePrompt(input);
     return output!;
   }
