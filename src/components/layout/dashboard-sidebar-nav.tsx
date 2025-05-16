@@ -11,6 +11,7 @@ import {
   Briefcase,
   Settings,
   LogOut,
+  HelpCircle, // Or ListChecks
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -27,11 +28,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "../ui/button";
 
-const navItems = [
+const mainNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/upload-resume", label: "Upload Resume", icon: FileUp },
-  { href: "/dashboard/upload-jd", label: "Upload JD", icon: ClipboardList },
   { href: "/dashboard/candidates", label: "Candidates", icon: Users },
+];
+
+const toolsNavItems = [
+  { href: "/dashboard/upload-resume", label: "Upload Resume", icon: FileUp },
+  { href: "/dashboard/upload-jd", label: "Upload JD & Match", icon: ClipboardList },
+  { href: "/dashboard/interview-prep", label: "Interview Prep", icon: HelpCircle },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {
@@ -80,11 +85,30 @@ export function DashboardSidebarNav() {
 
       <SidebarSeparator />
 
-      <SidebarMenu>
-        {navItems.map((item) => (
-          <NavLink key={item.href} {...item} />
-        ))}
-      </SidebarMenu>
+      <SidebarGroup>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">Main</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {mainNavItems.map((item) => (
+              <NavLink key={item.href} {...item} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarSeparator />
+      
+      <SidebarGroup>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">Tools</SidebarGroupLabel>
+        <SidebarGroupContent>
+           <SidebarMenu>
+            {toolsNavItems.map((item) => (
+              <NavLink key={item.href} {...item} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
 
       <div className="flex-grow" /> {/* Spacer */}
       
