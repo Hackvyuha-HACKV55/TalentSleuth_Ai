@@ -8,53 +8,11 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { redFlagDetection, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
-import { parseResume, type ParseResumeOutput } from "@/ai/flows/resume-parsing"; // For initial parsed data
+// No longer need parseResume here as candidate data comes from unified source
 import { useEffect, useState } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-// Mock candidate data, in a real app this would come from a database
-const mockCandidateData: { [key: string]: Partial<ParseResumeOutput> & { id: string, role?: string, avatarUrl?: string, resumeTextContent: string } } = {
-  "1": { 
-    id: "1", 
-    name: "Alice Wonderland", 
-    email: "alice@example.com", 
-    phone: "123-456-7890",
-    education: "M.S. in AI, Wonderland University",
-    experience: "5 years as AI Engineer at Mad Hatter Inc.",
-    skills: "Python, TensorFlow, PyTorch, NLP, Computer Vision",
-    certifications: "Certified AI Professional",
-    role: "Senior AI Engineer", 
-    avatarUrl: "https://placehold.co/120x120.png?text=AW",
-    resumeTextContent: "Alice Wonderland\nalice@example.com\n123-456-7890\nEducation: M.S. in AI, Wonderland University\nExperience: 5 years as AI Engineer at Mad Hatter Inc. Developed several NLP models.\nSkills: Python, TensorFlow, PyTorch, NLP, Computer Vision\nCertifications: Certified AI Professional"
-  },
-   "2": {
-    id: "2",
-    name: "Bob The Builder",
-    email: "bob@example.com",
-    phone: "234-567-8901",
-    education: "B.S. in Construction Management, Builder's College",
-    experience: "10 years as Lead Project Manager at FixIt Felix Jr. Co.",
-    skills: "Agile, Scrum, Risk Management, Budgeting, Team Leadership",
-    certifications: "PMP Certified",
-    role: "Lead Project Manager",
-    avatarUrl: "https://placehold.co/120x120.png?text=BB",
-    resumeTextContent: "Bob The Builder\nbob@example.com\n234-567-8901\nEducation: B.S. in Construction Management, Builder's College\nExperience: 10 years as Lead Project Manager at FixIt Felix Jr. Co. Managed projects up to $10M.\nSkills: Agile, Scrum, Risk Management, Budgeting, Team Leadership\nCertifications: PMP Certified",
-  },
-   "3": {
-    id: "3",
-    name: "Charlie Brown",
-    email: "charlie@example.com",
-    phone: "345-678-9012",
-    education: "B.F.A in Graphic Design, Peanuts Art School",
-    experience: "3 years as UX Designer at Good Grief Graphics",
-    skills: "Figma, Sketch, Adobe XD, User Research, Prototyping",
-    role: "Principal UX Designer",
-    avatarUrl: "https://placehold.co/120x120.png?text=CB",
-    resumeTextContent: "Charlie Brown\ncharlie@example.com\n345-678-9012\nEducation: B.F.A in Graphic Design, Peanuts Art School\nExperience: 3 years as UX Designer at Good Grief Graphics. Redesigned kite-flying app.\nSkills: Figma, Sketch, Adobe XD, User Research, Prototyping",
-  },
-};
-
+import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data";
 
 interface CandidateProfilePageProps {
   params: { id: string };
@@ -62,7 +20,8 @@ interface CandidateProfilePageProps {
 
 export default function CandidateProfilePage({ params }: CandidateProfilePageProps) {
   const candidateId = params.id;
-  const candidate = mockCandidateData[candidateId];
+  // Fetch candidate from the unified mock data
+  const candidate = unifiedMockCandidates.find(c => c.id === candidateId);
 
   const [profileDiscoveryResult, setProfileDiscoveryResult] = useState<ProfileDiscoveryOutput | null>(null);
   const [redFlagResult, setRedFlagResult] = useState<DetectRedFlagsOutput | null>(null);
@@ -114,7 +73,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     }
   };
   
-  // Section for displaying parsed resume details
   const ResumeDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
     if (!value) return null;
     return (
@@ -128,7 +86,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     );
   };
 
-
   if (!candidate) {
     return <div className="text-center py-10">Candidate not found.</div>;
   }
@@ -139,7 +96,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         <CardHeader className="bg-secondary/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
-              <AvatarImage src={candidate.avatarUrl} alt={candidate.name} data-ai-hint="person professional portrait" />
+              {/* Use a larger placeholder or the one from candidate data */}
+              <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(candidate.name)}`} alt={candidate.name} data-ai-hint="person professional portrait" />
               <AvatarFallback className="text-4xl bg-muted text-primary font-semibold">{getInitials(candidate.name)}</AvatarFallback>
             </Avatar>
             <div>
@@ -154,7 +112,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          {/* Parsed Resume Details Section */}
           <Card className="rounded-lg shadow-md">
             <CardHeader>
                 <CardTitle className="text-xl text-primary flex items-center"><FileText className="mr-2 h-5 w-5" /> Parsed Resume Details</CardTitle>
@@ -164,12 +121,13 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 <ResumeDetailItem icon={Briefcase} label="Experience" value={candidate.experience} />
                 <ResumeDetailItem icon={Sparkles} label="Skills" value={candidate.skills} />
                 <ResumeDetailItem icon={Award} label="Certifications" value={candidate.certifications} />
+                {/* Display resumeTextContent for debugging or if useful, otherwise omit */}
+                {/* <ResumeDetailItem icon={FileText} label="Resume Text (Raw)" value={candidate.resumeTextContent} /> */}
             </CardContent>
           </Card>
           
           <Separator />
 
-          {/* Profile Discovery Section */}
           <Card className="rounded-lg shadow-md">
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -194,7 +152,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          {/* Red Flag Detection Section */}
           <Card className="rounded-lg shadow-md">
              <CardHeader>
               <div className="flex justify-between items-center">

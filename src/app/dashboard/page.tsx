@@ -7,18 +7,14 @@ import { useAuth } from "@/context/auth-context";
 import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { CandidateCard } from "@/components/domain/candidate-card"; // Assuming this component exists
-
-// Mock data for candidate cards
-const mockCandidates = [
-  { id: "1", name: "Alice Wonderland", email: "alice@example.com", topSkill: "AI Development", fitScore: 85, avatarUrl: "https://placehold.co/40x40.png?text=AW" },
-  { id: "2", name: "Bob The Builder", email: "bob@example.com", topSkill: "Project Management", fitScore: 78, avatarUrl: "https://placehold.co/40x40.png?text=BB" },
-  { id: "3", name: "Charlie Brown", email: "charlie@example.com", topSkill: "UX Design", fitScore: 92, avatarUrl: "https://placehold.co/40x40.png?text=CB" },
-];
-
+import { CandidateCard } from "@/components/domain/candidate-card";
+import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data"; // Import unified mock data
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
+
+  // Take first 3 candidates from the unified list for display
+  const recentCandidates: UnifiedCandidate[] = unifiedMockCandidates.slice(0, 3);
 
   return (
     <div className="space-y-8">
@@ -52,8 +48,9 @@ export default function DashboardOverviewPage() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">1,234</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            {/* Use length of unifiedMockCandidates for a more "connected" count */}
+            <div className="text-2xl font-bold text-foreground">{unifiedMockCandidates.length}</div>
+            <p className="text-xs text-muted-foreground">+2 from initial mock</p> 
           </CardContent>
         </Card>
         <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -62,7 +59,7 @@ export default function DashboardOverviewPage() {
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">56</div>
+            <div className="text-2xl font-bold text-foreground">56</div> {/* Static for now */}
             <p className="text-xs text-muted-foreground">+5 since last week</p>
           </CardContent>
         </Card>
@@ -72,7 +69,15 @@ export default function DashboardOverviewPage() {
             <BarChartBig className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">78%</div>
+            <div className="text-2xl font-bold text-foreground">
+              {/* Calculate average fit score from unified data */}
+              {(() => {
+                const scoredCandidates = unifiedMockCandidates.filter(c => c.fitScore !== undefined);
+                if (scoredCandidates.length === 0) return "N/A";
+                const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
+                return `${Math.round(avg)}%`;
+              })()}
+            </div>
             <p className="text-xs text-muted-foreground">Across all matched roles</p>
           </CardContent>
         </Card>
@@ -88,7 +93,7 @@ export default function DashboardOverviewPage() {
           </Button>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mockCandidates.map(candidate => (
+          {recentCandidates.map(candidate => (
             <CandidateCard key={candidate.id} candidate={candidate} />
           ))}
         </div>

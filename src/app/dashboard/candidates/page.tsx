@@ -1,33 +1,30 @@
 
 "use client";
 
-import { CandidateCard, type Candidate } from "@/components/domain/candidate-card";
+import { CandidateCard } from "@/components/domain/candidate-card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
-
-const mockCandidates: Candidate[] = [
-  { id: "1", name: "Alice Wonderland", email: "alice.w@example.com", topSkill: "AI Development", fitScore: 85, avatarUrl: "https://placehold.co/80x80.png?text=AW", role: "Senior AI Engineer" },
-  { id: "2", name: "Bob The Builder", email: "bob.b@example.com", topSkill: "Project Management", fitScore: 78, avatarUrl: "https://placehold.co/80x80.png?text=BB", role: "Lead Project Manager" },
-  { id: "3", name: "Charlie Brown", email: "charlie.b@example.com", topSkill: "UX Design", fitScore: 92, avatarUrl: "https://placehold.co/80x80.png?text=CB", role: "Principal UX Designer" },
-  { id: "4", name: "Diana Prince", email: "diana.p@example.com", topSkill: "Cybersecurity", fitScore: 88, avatarUrl: "https://placehold.co/80x80.png?text=DP", role: "Security Analyst" },
-  { id: "5", name: "Edward Scissorhands", email: "edward.s@example.com", topSkill: "Frontend Development", fitScore: 75, avatarUrl: "https://placehold.co/80x80.png?text=ES", role: "Frontend Developer" },
-  { id: "6", name: "Fiona Gallagher", email: "fiona.g@example.com", topSkill: "Data Analysis", fitScore: 90, avatarUrl: "https://placehold.co/80x80.png?text=FG", role: "Data Scientist" },
-];
+import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data";
 
 export default function CandidatesListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSkill, setFilterSkill] = useState("all");
 
-  const filteredCandidates = mockCandidates.filter(candidate => {
+  // Use the unified mock data
+  const candidatesToDisplay: UnifiedCandidate[] = unifiedMockCandidates;
+
+  const filteredCandidates = candidatesToDisplay.filter(candidate => {
     const nameMatch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase());
     const emailMatch = candidate.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const skillMatch = filterSkill === "all" || candidate.topSkill.toLowerCase().includes(filterSkill.toLowerCase());
+    // Assuming topSkill is the primary skill to filter by as per original logic
+    const skillMatch = filterSkill === "all" || (candidate.topSkill && candidate.topSkill.toLowerCase().includes(filterSkill.toLowerCase()));
     return (nameMatch || emailMatch) && skillMatch;
   });
   
-  const uniqueSkills = ["all", ...new Set(mockCandidates.map(c => c.topSkill))];
+  const uniqueSkills = ["all", ...new Set(candidatesToDisplay.map(c => c.topSkill).filter(Boolean) as string[])];
+
 
   return (
     <div className="space-y-8">

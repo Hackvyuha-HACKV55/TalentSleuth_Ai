@@ -5,16 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Mail, Star, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import type { UnifiedCandidate } from "@/lib/mock-data"; // Import UnifiedCandidate
 
-export interface Candidate {
-  id: string;
-  name: string;
-  email: string;
-  topSkill: string;
-  fitScore?: number;
-  avatarUrl?: string;
-  role?: string;
-}
+// Use UnifiedCandidate directly or rename it to Candidate if preferred project-wide
+export type Candidate = UnifiedCandidate;
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -46,9 +40,10 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </div>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Briefcase className="h-4 w-4" />
+          {/* Displaying candidate.skills (full list) if topSkill is part of it or primary */}
           <span>Top Skill: <Badge variant="secondary" className="ml-1">{candidate.topSkill}</Badge></span>
         </div>
-        {candidate.fitScore && (
+        {candidate.fitScore !== undefined && ( // Check for undefined explicitly for numbers
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Star className="h-4 w-4 text-accent" />
             <span>

@@ -8,17 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { roleMatching, type RoleMatchingOutput } from "@/ai/flows/role-matching";
 import { useState } from "react";
-import { ScoreCard } from "./score-card"; // Ensure this path is correct
+import { ScoreCard } from "./score-card";
 import { Loader2, CheckSquare, Search, Brain } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Mock candidate data for selection
-const mockCandidates = [
-  { id: "1", name: "Alice Wonderland (AI Dev Resume)", resumeText: "Experienced AI developer with skills in Python, TensorFlow, and PyTorch. Led multiple machine learning projects." },
-  { id: "2", name: "Bob The Builder (PM Resume)", resumeText: "Certified Project Manager with 10 years of experience in software development lifecycles and agile methodologies." },
-  { id: "3", name: "Charlie Brown (UX Designer Resume)", resumeText: "Creative UX Designer focused on user-centered design principles. Proficient in Figma, Sketch, and Adobe XD." },
-];
-
+import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data"; // Import unified mock data
 
 export function JobDescriptionUploader() {
   const [jobDescription, setJobDescription] = useState("");
@@ -26,6 +19,9 @@ export function JobDescriptionUploader() {
   const [matchResult, setMatchResult] = useState<RoleMatchingOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Use unified mock candidates for selection
+  const candidatesForSelection: UnifiedCandidate[] = unifiedMockCandidates;
 
   const handleMatchRole = async () => {
     if (!jobDescription) {
@@ -45,9 +41,9 @@ export function JobDescriptionUploader() {
       return;
     }
     
-    const selectedCandidate = mockCandidates.find(c => c.id === selectedCandidateId);
-    if (!selectedCandidate) {
-        toast({ title: "Error", description: "Selected candidate not found.", variant: "destructive" });
+    const selectedCandidate = candidatesForSelection.find(c => c.id === selectedCandidateId);
+    if (!selectedCandidate || !selectedCandidate.resumeTextContent) { // Ensure resumeTextContent exists
+        toast({ title: "Error", description: "Selected candidate not found or missing resume text.", variant: "destructive" });
         return;
     }
 
@@ -56,7 +52,7 @@ export function JobDescriptionUploader() {
 
     try {
       const result = await roleMatching({
-        resumeText: selectedCandidate.resumeText,
+        resumeText: selectedCandidate.resumeTextContent, // Use resumeTextContent
         jobDescriptionText: jobDescription,
       });
       setMatchResult(result);
@@ -107,9 +103,9 @@ export function JobDescriptionUploader() {
               <SelectValue placeholder="Choose a candidate's resume..." />
             </SelectTrigger>
             <SelectContent>
-              {mockCandidates.map((candidate) => (
+              {candidatesForSelection.map((candidate) => (
                 <SelectItem key={candidate.id} value={candidate.id}>
-                  {candidate.name}
+                  {candidate.name} ({candidate.role || 'No role specified'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -130,10 +126,8 @@ export function JobDescriptionUploader() {
             <ScoreCard
               score={matchResult.fitmentScore}
               title="Role Fitment Analysis"
-              description={`Analysis for ${mockCandidates.find(c => c.id === selectedCandidateId)?.name || 'selected candidate'}`}
+              description={`Analysis for ${candidatesForSelection.find(c => c.id === selectedCandidateId)?.name || 'selected candidate'}`}
               justification={matchResult.justification}
-              // You could add a recommendation field to RoleMatchingOutput if desired
-              // recommendation={matchResult.recommendation} 
             />
           </div>
         )}
