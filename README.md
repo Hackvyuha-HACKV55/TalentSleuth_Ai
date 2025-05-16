@@ -1,28 +1,40 @@
 
 # TalentSleuth AI - Your Virtual Talent Analyst
 
-TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, and detect potential red flags, providing a comprehensive toolkit for talent acquisition.
+TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition.
+
+## Core Features
+
+*   **AI Resume Parsing:** Automatically extract key candidate information (contact details, education, experience, skills, certifications) from resumes (TXT, PDF, DOCX) using Gemini.
+*   **Dynamic Candidate Pool:** Parsed resumes create new candidate profiles within the application, managed via client-side state.
+*   **Candidate Dossier & Profile View:** Detailed view for each candidate showing parsed information, and sections for AI-driven insights.
+*   **Cross-Platform Profile Discovery (Simulated):** AI simulates finding and summarizing candidate data from platforms like LinkedIn, GitHub, and Naukri based on name and email.
+*   **Red Flag Detection:** AI analyzes resume text against (simulated) profile data to identify discrepancies, frequent job switching, or incomplete/dated information.
+*   **AI Role Fitment Matching:** Upload a job description and select a candidate to get an AI-generated fitment score (0-100) and justification.
+*   **AI Interview Question Generator:** Generate tailored interview questions based on job title and candidate skills (can be pre-filled by selecting a candidate).
+*   **User Authentication:** Secure sign-up, login, and password reset functionality using Firebase Authentication.
 
 ## Tech Stack
 
-- **Frontend:**
-    - **Next.js 15:** React framework with App Router for server components and optimized routing.
-    - **React 18:** JavaScript library for building user interfaces.
-    - **TypeScript:** Superset of JavaScript for static typing.
-- **UI & Styling:**
-    - **ShadCN UI:** Re-usable UI components built with Radix UI and Tailwind CSS.
-    - **Tailwind CSS:** Utility-first CSS framework for rapid styling.
-    - **Lucide React:** Icon library.
-- **AI & Backend Logic:**
-    - **Genkit (by Google):** Toolkit for building AI-powered applications. Used for defining and running AI flows.
-    - **Google Gemini:** Leveraged via the `@genkit-ai/googleai` plugin for generative AI tasks (resume parsing, profile discovery, red flag detection, role matching).
-- **Authentication:**
-    - **Firebase Authentication:** Manages user sign-up, login, and session management.
-- **Client-Side State Management:**
-    - **React Context API:** Used for managing global UI state like authentication status and the dynamic list of candidates.
-- **Development Tools:**
-    - **npm/yarn:** Package management.
-    - **ESLint & Prettier:** (Assumed for code quality, though not explicitly configured by me in this session)
+-   **Frontend:**
+    -   **Next.js 15:** React framework with App Router for server components and optimized routing.
+    -   **React 18:** JavaScript library for building user interfaces.
+    -   **TypeScript:** Superset of JavaScript for static typing.
+-   **UI & Styling:**
+    -   **ShadCN UI:** Re-usable UI components built with Radix UI and Tailwind CSS.
+    -   **Tailwind CSS:** Utility-first CSS framework for rapid styling.
+    -   **Lucide React:** Icon library.
+-   **AI & Backend Logic:**
+    -   **Genkit (by Google):** Toolkit for building AI-powered applications. Used for defining and running AI flows.
+        -   `@genkit-ai/googleai` plugin for Google Gemini.
+    -   **Google Gemini Pro (via `gemini-1.5-flash-latest` model):** Leveraged for generative AI tasks (resume parsing, profile discovery, red flag detection, role matching, interview question generation).
+-   **Authentication:**
+    -   **Firebase Authentication:** Manages user sign-up, login, and session management.
+-   **Client-Side State Management:**
+    -   **React Context API:** Used for managing global UI state like authentication status and the dynamic list of candidates.
+-   **Development Tools:**
+    -   **npm/yarn:** Package management.
+    -   **ESLint & Prettier:** (Assumed for code quality, though not explicitly configured by me in this session)
 
 ## Project Structure
 
@@ -32,7 +44,7 @@ talentsleuth-ai/
 ├── README.md             # This file
 ├── components.json       # ShadCN UI configuration
 ├── next.config.ts        # Next.js configuration
-├── package.json          # Project dependencies and scripts
+├── package.json          # Project dependencies and scripts (serves as requirements list)
 ├── postcss.config.js     # PostCSS configuration (for Tailwind)
 ├── public/               # Static assets (images, fonts, etc.)
 ├── src/
@@ -43,15 +55,17 @@ talentsleuth-ai/
 │   │       ├── profile-discovery.ts
 │   │       ├── red-flag-detection.ts
 │   │       ├── resume-parsing.ts
-│   │       └── role-matching.ts
+│   │       ├── role-matching.ts
+│   │       └── interview-question-generator.ts # New
 │   ├── app/              # Next.js App Router directory
-│   │   ├── (auth)/         # Authentication-related pages (login, signup)
+│   │   ├── (auth)/         # Authentication-related pages (login, signup, forgot-password)
 │   │   ├── dashboard/      # Main application dashboard routes
 │   │   │   ├── candidates/
 │   │   │   │   ├── [id]/page.tsx # Candidate detail page
 │   │   │   │   └── page.tsx      # Candidate listing page
 │   │   │   ├── upload-jd/page.tsx
 │   │   │   ├── upload-resume/page.tsx
+│   │   │   ├── interview-prep/page.tsx # New
 │   │   │   ├── settings/page.tsx
 │   │   │   ├── layout.tsx
 │   │   │   └── page.tsx      # Dashboard overview
@@ -59,8 +73,8 @@ talentsleuth-ai/
 │   │   ├── layout.tsx      # Root layout
 │   │   └── page.tsx        # Landing page
 │   ├── components/
-│   │   ├── domain/         # Application-specific components (e.g., CandidateCard)
-│   │   ├── layout/         # Layout components (Navbar, Footer, Sidebar)
+│   │   ├── domain/         # Application-specific components (e.g., CandidateCard, ResumeUploader)
+│   │   ├── layout/         # Layout components (Navbar, Footer, DashboardSidebarNav)
 │   │   └── ui/             # ShadCN UI components (Button, Card, etc.)
 │   ├── context/            # React Context API providers
 │   │   ├── auth-context.tsx
@@ -79,9 +93,9 @@ talentsleuth-ai/
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- **Node.js:** Version 18.x or 20.x is recommended. You can download it from [nodejs.org](https://nodejs.org/).
-- **npm** (comes with Node.js) or **yarn** (optional, install via `npm install -g yarn`).
-- **Google Gemini API Key:** You need an API key from Google AI Studio to use the AI features. You can get one [here](https://aistudio.google.com/app/apikey).
+-   **Node.js:** Version 18.x or 20.x is recommended. You can download it from [nodejs.org](https://nodejs.org/).
+-   **npm** (comes with Node.js) or **yarn** (optional, install via `npm install -g yarn`).
+-   **Google Gemini API Key:** You need an API key from Google AI Studio to use the AI features. You can get one [here](https://aistudio.google.com/app/apikey).
 
 ## Setup and Running Locally
 
@@ -97,7 +111,7 @@ Follow these steps to get the project running on your local machine:
     ```
 
 3.  **Install Dependencies:**
-    The `package.json` file lists all necessary dependencies. Install them using npm or yarn:
+    The `package.json` file lists all necessary dependencies. This is the equivalent of a `requirements.txt` file for Node.js projects. Install them using npm or yarn:
     ```bash
     npm install
     ```
@@ -105,7 +119,7 @@ Follow these steps to get the project running on your local machine:
     ```bash
     yarn install
     ```
-    This command reads `package.json` (the equivalent of `requirements.txt` in Python projects) and downloads the required packages into the `node_modules` folder.
+    This command reads `package.json` and downloads the required packages into the `node_modules` folder.
 
 4.  **Set Up Environment Variables:**
     You need to provide your Google Gemini API key.
@@ -125,7 +139,7 @@ Follow these steps to get the project running on your local machine:
     ```bash
     npm run genkit:watch
     ```
-    This server typically starts on `http://localhost:4000` and will show logs for Genkit operations. Keep this terminal window open.
+    This server typically starts on `http://localhost:4000` (or the port configured in your Genkit setup) and will show logs for Genkit operations. Keep this terminal window open.
 
 6.  **Run Next.js Development Server:**
     In a **new** terminal window or tab (while the Genkit server is still running), start the Next.js frontend application:
@@ -152,9 +166,12 @@ In the `package.json` file, you'll find several scripts for managing the project
 -   `npm run genkit:dev`: Starts the Genkit development server.
 -   `npm run genkit:watch`: Starts the Genkit development server with file watching for auto-reloads.
 
-## Further Development
+## Further Development & Considerations
 
--   **Data Persistence:** Currently, newly added candidates are stored in client-side React Context and will be lost on browser refresh. For persistent storage, integrate Firebase Firestore to save and retrieve candidate data.
--   **Real-time Profile Discovery:** The current profile discovery is simulated by the AI. True cross-platform scraping would require significant additional backend infrastructure and adherence to platform terms of service.
--   **Error Handling and UI Polish:** Enhance error handling for AI flows and refine the UI for a more robust user experience.
--   **File Handling:** Improve handling of various resume file types and sizes.
+*   **Data Persistence:** Currently, newly added candidates are stored in client-side React Context and will be lost on browser refresh. For persistent storage, integrate Firebase Firestore to save and retrieve candidate data.
+*   **Real-time Profile Discovery:** The current profile discovery is simulated by the AI. True cross-platform scraping would require significant additional backend infrastructure and adherence to platform terms of service.
+*   **Error Handling and UI Polish:** Enhance error handling for AI flows and refine the UI for a more robust user experience.
+*   **File Handling Robustness:** Improve handling and user feedback for various resume file types, sizes, and potential parsing issues (e.g., image-only PDFs).
+*   **Security:** For a production application, ensure API keys are managed securely (e.g., using environment variables on the server or dedicated secret management services) and not exposed on the client-side if possible.
+*   **Advanced AI Features:** Explore implementing other planned features like sentiment analysis, engagement tracking, or ATS integration.
+```

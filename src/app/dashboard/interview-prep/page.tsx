@@ -8,17 +8,36 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateInterviewQuestions, type GenerateInterviewQuestionsOutput, type GenerateInterviewQuestionsInput } from "@/ai/flows/interview-question-generator";
-import { useState, type FormEvent } from "react";
-import { Loader2, HelpCircle, ListChecks, Lightbulb } from "lucide-react";
+import { useState, type FormEvent, useEffect } from "react";
+import { Loader2, HelpCircle, ListChecks, Lightbulb, UserSearch } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCandidateContext } from "@/context/candidate-context";
+import type { UnifiedCandidate } from "@/lib/mock-data";
 
 export default function InterviewPrepPage() {
+  const { candidates } = useCandidateContext();
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | undefined>(undefined);
   const [jobTitle, setJobTitle] = useState("");
   const [candidateSkills, setCandidateSkills] = useState("");
   const [questionCount, setQuestionCount] = useState<number>(3);
   const [generatedResult, setGeneratedResult] = useState<GenerateInterviewQuestionsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (selectedCandidateId && selectedCandidateId !== "manual_input") {
+      const selectedCandidate = candidates.find(c => c.id === selectedCandidateId);
+      if (selectedCandidate) {
+        setJobTitle(selectedCandidate.role || "");
+        setCandidateSkills(selectedCandidate.skills || "");
+      }
+    } else if (selectedCandidateId === "manual_input") {
+      // Optionally clear fields or let user manage them if they switch back to manual
+      // setJobTitle("");
+      // setCandidateSkills("");
+    }
+  }, [selectedCandidateId, candidates]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -64,7 +83,7 @@ export default function InterviewPrepPage() {
           Interview Question Generator
         </h1>
         <p className="text-muted-foreground">
-          Generate tailored interview questions using AI based on job title and candidate skills.
+          Generate tailored interview questions using AI. Select a candidate to auto-fill details or enter them manually.
         </p>
       </div>
 
@@ -72,11 +91,30 @@ export default function InterviewPrepPage() {
         <CardHeader>
           <CardTitle className="text-2xl text-primary">Input Details</CardTitle>
           <CardDescription>
-            Provide the job title and key skills of the candidate to generate relevant questions.
+            Select a candidate or manually provide the job title and key skills.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="candidate-select" className="flex items-center"><UserSearch className="mr-2 h-4 w-4 text-muted-foreground" />Select Candidate (Optional)</Label>
+              <Select onValueChange={setSelectedCandidateId} value={selectedCandidateId}>
+                <SelectTrigger id="candidate-select" className="w-full rounded-lg">
+                  <SelectValue placeholder="Choose a candidate to pre-fill..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual_input">None - Enter Manually</SelectItem>
+                  {candidates.map((candidate: UnifiedCandidate) => (
+                    candidate.id && candidate.name ?
+                    <SelectItem key={candidate.id} value={candidate.id}>
+                      {candidate.name} ({candidate.role || 'Role N/A'})
+                    </SelectItem>
+                    : null
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="jobTitle">Job Title</Label>
               <Input
