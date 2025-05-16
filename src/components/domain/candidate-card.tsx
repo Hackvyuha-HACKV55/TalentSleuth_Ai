@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Mail, Star, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/lib/mock-data"; // Import UnifiedCandidate
+import type { UnifiedCandidate } from "@/lib/mock-data"; 
 
-// Use UnifiedCandidate directly or rename it to Candidate if preferred project-wide
 export type Candidate = UnifiedCandidate;
 
 interface CandidateCardProps {
@@ -15,35 +14,41 @@ interface CandidateCardProps {
 }
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string | null) => {
+    if (!name) return "??";
     const names = name.split(' ');
     if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
     return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
   }
 
+  // Fallback for potentially missing fields from newly parsed data
+  const displayName = candidate.name || "Unnamed Candidate";
+  const displayEmail = candidate.email || "No email";
+  const displayRole = candidate.role || "Role not specified";
+  const displayTopSkill = candidate.topSkill || "Skill not specified";
+
   return (
     <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0">
         <Avatar className="h-12 w-12 border-2 border-primary">
-          <AvatarImage src={candidate.avatarUrl} alt={candidate.name} data-ai-hint="person professional" />
-          <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(candidate.name)}</AvatarFallback>
+          <AvatarImage src={candidate.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional" />
+          <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(displayName)}</AvatarFallback>
         </Avatar>
         <div className="grid gap-1">
-          <CardTitle className="text-xl text-foreground">{candidate.name}</CardTitle>
-          {candidate.role && <CardDescription className="text-sm text-muted-foreground">{candidate.role}</CardDescription>}
+          <CardTitle className="text-xl text-foreground">{displayName}</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">{displayRole}</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="grid gap-3 flex-grow">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Mail className="h-4 w-4" />
-          <span>{candidate.email}</span>
+          <span>{displayEmail}</span>
         </div>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Briefcase className="h-4 w-4" />
-          {/* Displaying candidate.skills (full list) if topSkill is part of it or primary */}
-          <span>Top Skill: <Badge variant="secondary" className="ml-1">{candidate.topSkill}</Badge></span>
+          <span>Top Skill: <Badge variant="secondary" className="ml-1">{displayTopSkill}</Badge></span>
         </div>
-        {candidate.fitScore !== undefined && ( // Check for undefined explicitly for numbers
+        {candidate.fitScore !== undefined && candidate.fitScore !== null && (
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Star className="h-4 w-4 text-accent" />
             <span>
@@ -53,7 +58,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         )}
       </CardContent>
       <CardFooter>
-        <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg">
+        <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg" disabled={!candidate.id}>
           <Link href={`/dashboard/candidates/${candidate.id}`}>
             View Profile <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

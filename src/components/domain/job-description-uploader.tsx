@@ -9,19 +9,18 @@ import { useToast } from "@/hooks/use-toast";
 import { roleMatching, type RoleMatchingOutput } from "@/ai/flows/role-matching";
 import { useState } from "react";
 import { ScoreCard } from "./score-card";
-import { Loader2, CheckSquare, Search, Brain } from "lucide-react";
+import { Loader2, Brain, Search } from "lucide-react"; // CheckSquare was unused
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data"; // Import unified mock data
+import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import type { UnifiedCandidate } from "@/lib/mock-data";
 
 export function JobDescriptionUploader() {
+  const { candidates: candidatesForSelection, updateCandidateFitScore } = useCandidateContext(); // Use context
   const [jobDescription, setJobDescription] = useState("");
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [matchResult, setMatchResult] = useState<RoleMatchingOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  // Use unified mock candidates for selection
-  const candidatesForSelection: UnifiedCandidate[] = unifiedMockCandidates;
 
   const handleMatchRole = async () => {
     if (!jobDescription) {
@@ -42,8 +41,9 @@ export function JobDescriptionUploader() {
     }
     
     const selectedCandidate = candidatesForSelection.find(c => c.id === selectedCandidateId);
-    if (!selectedCandidate || !selectedCandidate.resumeTextContent) { // Ensure resumeTextContent exists
-        toast({ title: "Error", description: "Selected candidate not found or missing resume text.", variant: "destructive" });
+    // Use resumeTextContent for matching
+    if (!selectedCandidate || !selectedCandidate.resumeTextContent) { 
+        toast({ title: "Error", description: "Selected candidate not found or missing resume text content.", variant: "destructive" });
         return;
     }
 
@@ -52,13 +52,14 @@ export function JobDescriptionUploader() {
 
     try {
       const result = await roleMatching({
-        resumeText: selectedCandidate.resumeTextContent, // Use resumeTextContent
+        resumeText: selectedCandidate.resumeTextContent, 
         jobDescriptionText: jobDescription,
       });
       setMatchResult(result);
+      updateCandidateFitScore(selectedCandidateId, result.fitmentScore); // Update fit score in context
       toast({
         title: "Role Matching Complete",
-        description: `Fitment score for ${selectedCandidate.name} calculated.`,
+        description: `Fitment score for ${selectedCandidate.name} calculated and updated.`,
         variant: "default",
       });
     } catch (error) {
@@ -103,10 +104,12 @@ export function JobDescriptionUploader() {
               <SelectValue placeholder="Choose a candidate's resume..." />
             </SelectTrigger>
             <SelectContent>
-              {candidatesForSelection.map((candidate) => (
+              {candidatesForSelection.map((candidate: UnifiedCandidate) => (
+                candidate.id && candidate.name ? // Ensure essential props exist
                 <SelectItem key={candidate.id} value={candidate.id}>
-                  {candidate.name} ({candidate.role || 'No role specified'})
+                  {candidate.name} ({candidate.role || 'Role not specified'})
                 </SelectItem>
+                : null
               ))}
             </SelectContent>
           </Select>
@@ -118,7 +121,7 @@ export function JobDescriptionUploader() {
           ) : (
             <Search className="mr-2 h-4 w-4" />
           )}
-          {isLoading ? "Matching..." : "Match Role"}
+          {isLoading ? "Matching..." : "Match Role & Update Score"}
         </Button>
 
         {matchResult && (

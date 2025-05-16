@@ -6,15 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/context/auth-context";
 import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+// import Image from "next/image"; // No longer used
 import { CandidateCard } from "@/components/domain/candidate-card";
-import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data"; // Import unified mock data
+import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import type { UnifiedCandidate } from "@/lib/mock-data"; 
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
+  const { candidates } = useCandidateContext(); // Use context
 
-  // Take first 3 candidates from the unified list for display
-  const recentCandidates: UnifiedCandidate[] = unifiedMockCandidates.slice(0, 3);
+  // Take first 3 candidates for display
+  const recentCandidates: UnifiedCandidate[] = candidates.slice(-3).reverse(); // Show newest 3
 
   return (
     <div className="space-y-8">
@@ -48,9 +50,9 @@ export default function DashboardOverviewPage() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {/* Use length of unifiedMockCandidates for a more "connected" count */}
-            <div className="text-2xl font-bold text-foreground">{unifiedMockCandidates.length}</div>
-            <p className="text-xs text-muted-foreground">+2 from initial mock</p> 
+            <div className="text-2xl font-bold text-foreground">{candidates.length}</div>
+            {/* You can add more dynamic info here if needed */}
+            <p className="text-xs text-muted-foreground">In your talent pool</p> 
           </CardContent>
         </Card>
         <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -59,7 +61,7 @@ export default function DashboardOverviewPage() {
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">56</div> {/* Static for now */}
+            <div className="text-2xl font-bold text-foreground">56</div> {/* Static for now, can be dynamic later */}
             <p className="text-xs text-muted-foreground">+5 since last week</p>
           </CardContent>
         </Card>
@@ -70,9 +72,8 @@ export default function DashboardOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {/* Calculate average fit score from unified data */}
               {(() => {
-                const scoredCandidates = unifiedMockCandidates.filter(c => c.fitScore !== undefined);
+                const scoredCandidates = candidates.filter(c => c.fitScore !== undefined && c.fitScore !== null);
                 if (scoredCandidates.length === 0) return "N/A";
                 const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
                 return `${Math.round(avg)}%`;
@@ -92,11 +93,17 @@ export default function DashboardOverviewPage() {
             </Link>
           </Button>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recentCandidates.map(candidate => (
-            <CandidateCard key={candidate.id} candidate={candidate} />
-          ))}
-        </div>
+        {recentCandidates.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {recentCandidates.map(candidate => (
+              candidate.id && candidate.name && candidate.email ? // Ensure essential props exist
+              <CandidateCard key={candidate.id} candidate={candidate} />
+              : null
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No recent candidates to display. Try uploading a resume.</p>
+        )}
       </div>
 
     </div>

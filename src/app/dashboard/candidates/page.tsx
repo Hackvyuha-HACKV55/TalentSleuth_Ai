@@ -6,19 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
-import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data";
+import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import type { UnifiedCandidate } from "@/lib/mock-data";
 
 export default function CandidatesListPage() {
+  const { candidates } = useCandidateContext(); // Use candidates from context
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSkill, setFilterSkill] = useState("all");
 
-  // Use the unified mock data
-  const candidatesToDisplay: UnifiedCandidate[] = unifiedMockCandidates;
+  const candidatesToDisplay: UnifiedCandidate[] = candidates;
 
   const filteredCandidates = candidatesToDisplay.filter(candidate => {
-    const nameMatch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const emailMatch = candidate.email.toLowerCase().includes(searchTerm.toLowerCase());
-    // Assuming topSkill is the primary skill to filter by as per original logic
+    const nameMatch = candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
+    const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
     const skillMatch = filterSkill === "all" || (candidate.topSkill && candidate.topSkill.toLowerCase().includes(filterSkill.toLowerCase()));
     return (nameMatch || emailMatch) && skillMatch;
   });
@@ -61,12 +61,15 @@ export default function CandidatesListPage() {
       {filteredCandidates.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCandidates.map((candidate) => (
+             candidate.id && candidate.name && candidate.email ? // Ensure essential props exist
             <CandidateCard key={candidate.id} candidate={candidate} />
+            : null
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <p className="text-xl text-muted-foreground">No candidates found matching your criteria.</p>
+          <p className="text-sm text-muted-foreground">Try uploading a resume to add new candidates.</p>
         </div>
       )}
     </div>

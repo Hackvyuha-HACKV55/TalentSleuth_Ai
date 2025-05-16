@@ -1,9 +1,8 @@
-// This file is machine-generated - DO NOT EDIT.
 
 'use server';
 
 /**
- * @fileOverview Summarizes candidate data from LinkedIn and GitHub using AI.
+ * @fileOverview Summarizes candidate data from LinkedIn, GitHub, and Naukri using AI.
  *
  * - profileDiscovery - A function that handles the profile discovery process.
  * - ProfileDiscoveryInput - The input type for the profileDiscovery function.
@@ -20,7 +19,7 @@ const ProfileDiscoveryInputSchema = z.object({
 export type ProfileDiscoveryInput = z.infer<typeof ProfileDiscoveryInputSchema>;
 
 const ProfileDiscoveryOutputSchema = z.object({
-  summary: z.string().describe('A summary of the candidate\s online presence and contributions from LinkedIn and GitHub.'),
+  summary: z.string().describe('A summary of the candidate\'s online presence and contributions, attempting to find information on platforms like LinkedIn, GitHub, and Naukri.'),
 });
 export type ProfileDiscoveryOutput = z.infer<typeof ProfileDiscoveryOutputSchema>;
 
@@ -32,7 +31,11 @@ const prompt = ai.definePrompt({
   name: 'profileDiscoveryPrompt',
   input: {schema: ProfileDiscoveryInputSchema},
   output: {schema: ProfileDiscoveryOutputSchema},
-  prompt: `Summarize candidate data from LinkedIn and GitHub for {{name}} ({{email}}).`,
+  prompt: `Based on the provided name and email, perform a simulated search for candidate data on professional platforms like LinkedIn, GitHub, and Naukri.
+  Candidate Name: {{name}}
+  Candidate Email: {{email}}
+  Summarize any relevant professional information, skills, projects, or contributions found. If no specific information is found, indicate that.
+  Focus on information that would be relevant for a hiring decision.`,
 });
 
 const profileDiscoveryFlow = ai.defineFlow(
