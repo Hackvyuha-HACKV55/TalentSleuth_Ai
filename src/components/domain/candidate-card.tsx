@@ -1,9 +1,11 @@
 
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Mail, Star, ArrowRight, Trash2 } from "lucide-react";
+import { Briefcase, Mail, Star, ArrowRight, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { UnifiedCandidate } from "@/lib/mock-data"; 
 import {
@@ -18,7 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useCandidateContext } from "@/context/candidate-context";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast"; // Toast is handled by context now
+import { useState } from "react";
 
 export type Candidate = UnifiedCandidate;
 
@@ -28,7 +31,9 @@ interface CandidateCardProps {
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
   const { deleteCandidate } = useCandidateContext();
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Toast messages for delete success/failure are now in CandidateContext
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const getInitials = (name?: string | null) => {
     if (!name) return "??";
@@ -37,13 +42,13 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (candidate.id) {
-      deleteCandidate(candidate.id);
-      toast({
-        title: "Candidate Deleted",
-        description: `${candidate.name || "The candidate"} has been removed from the list.`,
-      });
+      setIsDeleting(true);
+      await deleteCandidate(candidate.id);
+      // Toast message is handled by the context after successful Firestore deletion
+      setIsDeleting(false); 
+      // No need to close dialog explicitly, AlertDialogAction does this
     }
   };
 
@@ -65,8 +70,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" disabled={!candidate.id}>
-              <Trash2 className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" disabled={!candidate.id || isDeleting}>
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -74,13 +79,14 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the candidate
-                <span className="font-semibold"> {displayName}</span> and remove their data.
+                <span className="font-semibold"> {displayName}</span> from the database.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                Delete
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isDeleting ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

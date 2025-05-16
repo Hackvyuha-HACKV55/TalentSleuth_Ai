@@ -4,33 +4,31 @@
 import { CandidateCard } from "@/components/domain/candidate-card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import { useCandidateContext } from "@/context/candidate-context"; 
 import type { UnifiedCandidate } from "@/lib/mock-data";
 
 export default function CandidatesListPage() {
-  const { candidates } = useCandidateContext(); // Use candidates from context
+  const { candidates, loadingCandidates } = useCandidateContext(); 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSkill, setFilterSkill] = useState("all");
 
-  const candidatesToDisplay: UnifiedCandidate[] = candidates;
-
-  const filteredCandidates = candidatesToDisplay.filter(candidate => {
+  const filteredCandidates = candidates.filter(candidate => {
     const nameMatch = candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
     const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
     const skillMatch = filterSkill === "all" || (candidate.topSkill && candidate.topSkill.toLowerCase().includes(filterSkill.toLowerCase()));
     return (nameMatch || emailMatch) && skillMatch;
   });
   
-  const uniqueSkills = ["all", ...new Set(candidatesToDisplay.map(c => c.topSkill).filter(Boolean) as string[])];
+  const uniqueSkills = ["all", ...new Set(candidates.map(c => c.topSkill).filter(Boolean) as string[])];
 
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Candidates</h1>
-        <p className="text-muted-foreground">Browse and manage your talent pool.</p>
+        <p className="text-muted-foreground">Browse and manage your talent pool from the central database.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -58,18 +56,27 @@ export default function CandidatesListPage() {
         </div>
       </div>
 
-      {filteredCandidates.length > 0 ? (
+      {loadingCandidates ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+          <p className="text-lg text-muted-foreground">Loading candidates from database...</p>
+        </div>
+      ) : filteredCandidates.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCandidates.map((candidate) => (
-             candidate.id && candidate.name && candidate.email ? // Ensure essential props exist
+             candidate.id && candidate.name && candidate.email ? 
             <CandidateCard key={candidate.id} candidate={candidate} />
             : null
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-xl text-muted-foreground">No candidates found matching your criteria.</p>
-          <p className="text-sm text-muted-foreground">Try uploading a resume to add new candidates.</p>
+          <p className="text-xl text-muted-foreground">
+            {candidates.length === 0 ? "No candidates found in the database." : "No candidates found matching your criteria."}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {candidates.length === 0 ? "Try uploading a resume to add new candidates." : "Adjust your search or filter."}
+          </p>
         </div>
       )}
     </div>

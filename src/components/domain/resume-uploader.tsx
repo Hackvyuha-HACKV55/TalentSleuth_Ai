@@ -76,27 +76,32 @@ export function ResumeUploader() {
       const result = await parseResume({ resumeDataUri }); 
       setParsedData(result);
       
-      if (result.name && result.email) { // Add candidate if essential info is present
-        const newCandidate = addCandidate(result, resumeDataUri);
-        setNewlyAddedCandidateId(newCandidate.id);
-        toast({
-          title: "Resume Parsed & Candidate Added",
-          description: `${result.name} has been added to the candidate pool.`,
-          variant: "default",
-        });
+      // Attempt to add candidate to context (and Firestore)
+      if (result.name && result.email) { // Check for essential info
+        const newCandidate = await addCandidate(result, resumeDataUri);
+        if (newCandidate && newCandidate.id) {
+          setNewlyAddedCandidateId(newCandidate.id);
+          // Toast message is handled by addCandidate in context
+        } else {
+           toast({ // If addCandidate fails or returns null
+            title: "Failed to Add Candidate",
+            description: `Could not save ${result.name} to the candidate pool.`,
+            variant: "destructive",
+          });
+        }
       } else {
          toast({
           title: "Resume Parsing Completed",
-          description: result.name ? `Extracted information for ${result.name}. Could not add to pool due to missing essential info (e.g. email).` : "AI attempted to parse the resume. Could not add to pool due to missing essential info.",
-          variant: "default",
+          description: result.name ? `Extracted information for ${result.name}. Could not add to pool due to missing essential info (e.g. name or email).` : "AI attempted to parse the resume. Could not add to pool due to missing essential info.",
+          variant: "default", // Or "warning" if you have such a variant
         });
       }
 
     } catch (error) {
-      console.error("Error parsing resume:", error);
+      console.error("Error parsing resume or adding candidate:", error);
       toast({
-        title: "Error Parsing Resume",
-        description: "An error occurred while parsing the resume. Please try again.",
+        title: "Processing Error",
+        description: "An error occurred during resume processing. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -105,7 +110,7 @@ export function ResumeUploader() {
   };
 
   const ParsedDataItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
-    if (!value) return null;
+    if (!value || value.toLowerCase() === "not found" || value.trim() === "") return null;
     return (
       <div className="py-2 border-b border-border/60">
         <div className="flex items-start space-x-3">
@@ -127,7 +132,7 @@ export function ResumeUploader() {
           <Sparkles className="mr-2 h-6 w-6" /> AI Resume Parser
         </CardTitle>
         <CardDescription>
-          Upload a resume (DOCX, PDF, TXT) to automatically extract key information and add the candidate to your pool.
+          Upload a resume (DOCX, PDF, TXT) to automatically extract key information and add the candidate to your database.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -147,7 +152,7 @@ export function ResumeUploader() {
               ) : (
                 <UserPlus className="mr-2 h-4 w-4" />
               )}
-              {isLoading ? "Parsing & Adding..." : "Parse & Add Candidate"}
+              {isLoading ? "Processing..." : "Parse & Add Candidate"}
             </Button>
           </div>
           {file && <p className="mt-2 text-sm text-muted-foreground">Selected file: {file.name}</p>}
@@ -173,6 +178,12 @@ export function ResumeUploader() {
               <ParsedDataItem icon={Briefcase} label="Experience" value={parsedData.experience} />
               <ParsedDataItem icon={Sparkles} label="Skills" value={parsedData.skills} />
               <ParsedDataItem icon={Award} label="Certifications" value={parsedData.certifications} />
+              {!newlyAddedCandidateId && parsedData.name && parsedData.email && (
+                <p className="text-sm text-amber-600 pt-2">Candidate information extracted but not added to database due to an issue or missing critical fields during the final step.</p>
+              )}
+               {!parsedData.name && !parsedData.email && (
+                <p className="text-sm text-muted-foreground pt-2">Could not extract essential information (Name, Email) to create a candidate profile.</p>
+              )}
             </CardContent>
           </Card>
         )}

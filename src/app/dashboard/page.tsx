@@ -4,19 +4,20 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/auth-context";
-import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig } from "lucide-react";
+import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig, Loader2 } from "lucide-react";
 import Link from "next/link";
-// import Image from "next/image"; // No longer used
 import { CandidateCard } from "@/components/domain/candidate-card";
-import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import { useCandidateContext } from "@/context/candidate-context"; 
 import type { UnifiedCandidate } from "@/lib/mock-data"; 
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
-  const { candidates } = useCandidateContext(); // Use context
+  const { candidates, loadingCandidates } = useCandidateContext(); 
 
-  // Take first 3 candidates for display
-  const recentCandidates: UnifiedCandidate[] = candidates.slice(-3).reverse(); // Show newest 3
+  // Take first 3 candidates for display, make sure they are sorted if order matters (e.g. by add date)
+  // For now, just taking the first 3 from the current list.
+  // If candidates are added to the start of the list in context, this will show the newest.
+  const recentCandidates: UnifiedCandidate[] = candidates.slice(0, 3); 
 
   return (
     <div className="space-y-8">
@@ -50,8 +51,11 @@ export default function DashboardOverviewPage() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{candidates.length}</div>
-            {/* You can add more dynamic info here if needed */}
+            {loadingCandidates ? (
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            ) : (
+              <div className="text-2xl font-bold text-foreground">{candidates.length}</div>
+            )}
             <p className="text-xs text-muted-foreground">In your talent pool</p> 
           </CardContent>
         </Card>
@@ -71,14 +75,18 @@ export default function DashboardOverviewPage() {
             <BarChartBig className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {(() => {
-                const scoredCandidates = candidates.filter(c => c.fitScore !== undefined && c.fitScore !== null);
-                if (scoredCandidates.length === 0) return "N/A";
-                const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
-                return `${Math.round(avg)}%`;
-              })()}
-            </div>
+            {loadingCandidates ? (
+               <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            ) : (
+              <div className="text-2xl font-bold text-foreground">
+                {(() => {
+                  const scoredCandidates = candidates.filter(c => c.fitScore !== undefined && c.fitScore !== null);
+                  if (scoredCandidates.length === 0) return "N/A";
+                  const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
+                  return `${Math.round(avg)}%`;
+                })()}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">Across all matched roles</p>
           </CardContent>
         </Card>
@@ -93,10 +101,15 @@ export default function DashboardOverviewPage() {
             </Link>
           </Button>
         </div>
-        {recentCandidates.length > 0 ? (
+        {loadingCandidates ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-3 text-muted-foreground">Loading recent candidates...</p>
+          </div>
+        ) : recentCandidates.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {recentCandidates.map(candidate => (
-              candidate.id && candidate.name && candidate.email ? // Ensure essential props exist
+              candidate.id && candidate.name && candidate.email ? 
               <CandidateCard key={candidate.id} candidate={candidate} />
               : null
             ))}
