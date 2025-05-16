@@ -9,17 +9,17 @@ import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
 // No longer need parseResume here as candidate data comes from unified source
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react"; // Added use
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { unifiedMockCandidates, type UnifiedCandidate } from "@/lib/mock-data";
 
 interface CandidateProfilePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>; // Updated params type
 }
 
 export default function CandidateProfilePage({ params }: CandidateProfilePageProps) {
-  const candidateId = params.id;
+  const { id: candidateId } = use(params); // Use React.use() to unwrap params
   // Fetch candidate from the unified mock data
   const candidate = unifiedMockCandidates.find(c => c.id === candidateId);
 
@@ -97,7 +97,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
               {/* Use a larger placeholder or the one from candidate data */}
-              <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(candidate.name)}`} alt={candidate.name} data-ai-hint="person professional portrait" />
+              <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(candidate.name)}`} alt={candidate.name ?? 'Candidate'} data-ai-hint="person professional portrait" />
               <AvatarFallback className="text-4xl bg-muted text-primary font-semibold">{getInitials(candidate.name)}</AvatarFallback>
             </Avatar>
             <div>
@@ -117,6 +117,9 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 <CardTitle className="text-xl text-primary flex items-center"><FileText className="mr-2 h-5 w-5" /> Parsed Resume Details</CardTitle>
             </CardHeader>
             <CardContent className="divide-y divide-border/60">
+                <ResumeDetailItem icon={User} label="Name" value={candidate.name} />
+                <ResumeDetailItem icon={Mail} label="Email" value={candidate.email} />
+                <ResumeDetailItem icon={Phone} label="Phone" value={candidate.phone} />
                 <ResumeDetailItem icon={BookOpen} label="Education" value={candidate.education} />
                 <ResumeDetailItem icon={Briefcase} label="Experience" value={candidate.experience} />
                 <ResumeDetailItem icon={Sparkles} label="Skills" value={candidate.skills} />
