@@ -11,6 +11,7 @@ interface CandidateContextType {
   addCandidate: (parsedData: ParseResumeOutput, resumeOriginalDataUri: string) => UnifiedCandidate;
   getCandidateById: (id: string) => UnifiedCandidate | undefined;
   updateCandidateFitScore: (id: string, fitScore: number, justification?: string) => void;
+  deleteCandidate: (id: string) => void;
 }
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
@@ -19,7 +20,7 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
   const [candidates, setCandidates] = useState<UnifiedCandidate[]>(unifiedMockCandidates);
 
   const addCandidate = useCallback((parsedData: ParseResumeOutput, resumeOriginalDataUri: string): UnifiedCandidate => {
-    const newId = (Math.max(0, ...candidates.map(c => parseInt(c.id, 10))) + 1).toString();
+    const newId = (Math.max(0, ...candidates.map(c => parseInt(c.id || "0", 10))) + 1).toString();
     const initials = (parsedData.name || "New Candidate")
       .split(' ')
       .map(n => n[0])
@@ -33,11 +34,10 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
       ...parsedData,
       id: newId,
       avatarUrl: `https://placehold.co/80x80.png?text=${initials}`,
-      role: parsedData.experience?.split('\n')[0] || "Pending Role", // Basic role inference
-      topSkill: parsedData.skills?.split(',')[0]?.trim() || "Pending Skill", // Basic top skill
+      role: parsedData.experience?.split('\n')[0] || "Pending Role", 
+      topSkill: parsedData.skills?.split(',')[0]?.trim() || "Pending Skill", 
       resumeOriginalDataUri,
-      resumeTextContent, // Store the generated text content
-      // fitScore will be undefined initially
+      resumeTextContent, 
     };
     setCandidates(prevCandidates => [...prevCandidates, newCandidate]);
     return newCandidate;
@@ -50,14 +50,18 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
   const updateCandidateFitScore = useCallback((id: string, fitScore: number, justification?: string) => {
     setCandidates(prevCandidates =>
       prevCandidates.map(c =>
-        c.id === id ? { ...c, fitScore, justification } : c // `justification` would need to be added to UnifiedCandidate if used
+        c.id === id ? { ...c, fitScore, justification } : c 
       )
     );
   }, []);
 
+  const deleteCandidate = useCallback((id: string) => {
+    setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== id));
+  }, []);
+
 
   return (
-    <CandidateContext.Provider value={{ candidates, addCandidate, getCandidateById, updateCandidateFitScore }}>
+    <CandidateContext.Provider value={{ candidates, addCandidate, getCandidateById, updateCandidateFitScore, deleteCandidate }}>
       {children}
     </CandidateContext.Provider>
   );

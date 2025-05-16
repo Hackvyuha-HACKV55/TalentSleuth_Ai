@@ -2,16 +2,15 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { Badge } from "@/components/ui/badge"; // Not used currently
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
-import { use, useState } from "react"; 
+import { use, useState, useEffect } from "react"; 
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCandidateContext } from "@/context/candidate-context"; // Import context
+import { useCandidateContext } from "@/context/candidate-context"; 
 import type { UnifiedCandidate } from "@/lib/mock-data";
 
 interface CandidateProfilePageProps {
@@ -20,14 +19,28 @@ interface CandidateProfilePageProps {
 
 export default function CandidateProfilePage({ params }: CandidateProfilePageProps) {
   const { id: candidateId } = use(params); 
-  const { getCandidateById } = useCandidateContext(); // Use context
+  const { getCandidateById } = useCandidateContext(); 
   const candidate = getCandidateById(candidateId);
 
   const [profileDiscoveryResult, setProfileDiscoveryResult] = useState<ProfileDiscoveryOutput | null>(null);
   const [redFlagResult, setRedFlagResult] = useState<DetectRedFlagsOutput | null>(null);
   const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
   const [isLoadingRedFlags, setIsLoadingRedFlags] = useState(false);
+  const [hasProfileLinks, setHasProfileLinks] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (candidate?.resumeTextContent) {
+      const content = candidate.resumeTextContent.toLowerCase();
+      if (content.includes('linkedin.com') || content.includes('github.com') || content.includes('naukri.com')) {
+        setHasProfileLinks(true);
+      } else {
+        setHasProfileLinks(false);
+      }
+    } else {
+      setHasProfileLinks(false);
+    }
+  }, [candidate?.resumeTextContent]);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "??";
@@ -40,6 +53,11 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     if (!candidate?.name || !candidate?.email) {
       toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
       return;
+    }
+    if (!hasProfileLinks) {
+        toast({ title: "No Profile Links Found", description: "Resume content does not seem to contain links to LinkedIn, GitHub, or Naukri. Discovery may be limited.", variant: "default" });
+        // Proceed with discovery anyway, but the button is disabled if no links are found.
+        // If we decide to allow it even without links, remove this specific check and rely on the button's disabled state.
     }
     setIsLoadingDiscovery(true);
     try {
@@ -54,7 +72,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   };
 
   const runRedFlagDetection = async () => {
-    // Use candidate.resumeTextContent which is generated from parsed fields
     if (!candidate?.resumeTextContent || !profileDiscoveryResult?.summary) {
        toast({ title: "Missing data for red flag detection.", description: "Ensure resume details and profile discovery are available.", variant: "destructive" });
       return;
@@ -75,7 +92,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   };
   
   const ResumeDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
-    if (!value && value !== "") return null; // Allow empty string for "Not found"
+    if (!value && value !== "") return null; 
     return (
       <div className="flex items-start space-x-3 py-3">
         <Icon className="h-5 w-5 text-primary mt-1 shrink-0" />
@@ -97,7 +114,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     );
   }
   
-  // Ensure all required fields for display exist or have fallbacks
   const displayName = candidate.name || "N/A";
   const displayRole = candidate.role || "Role not specified";
   const displayEmail = candidate.email || "Email not available";
@@ -109,7 +125,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         <CardHeader className="bg-secondary/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
-              <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional portrait" />
+              <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional portrait"/>
               <AvatarFallback className="text-4xl bg-muted text-primary font-semibold">{getInitials(displayName)}</AvatarFallback>
             </Avatar>
             <div>
@@ -145,11 +161,12 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
-                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery} size="sm" variant="outline" className="rounded-lg">
+                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery || !hasProfileLinks} size="sm" variant="outline" className="rounded-lg">
                   {isLoadingDiscovery ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                   {isLoadingDiscovery ? "Searching..." : "Run Discovery"}
                 </Button>
               </div>
+               {!hasProfileLinks && <CardDescription className="text-xs text-amber-600 mt-1">Profile Discovery is more effective if resume text contains links to LinkedIn, GitHub, or Naukri. Button disabled.</CardDescription>}
             </CardHeader>
             <CardContent>
               {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
@@ -159,7 +176,12 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{profileDiscoveryResult.summary}</p>
                 </div>
               )}
-              {!isLoadingDiscovery && !profileDiscoveryResult && <p className="text-sm text-muted-foreground">Click &quot;Run Discovery&quot; to fetch and summarize online profile data (simulated search across LinkedIn, GitHub, Naukri).</p>}
+              {!isLoadingDiscovery && !profileDiscoveryResult && !hasProfileLinks &&
+                <p className="text-sm text-muted-foreground">The resume text does not appear to contain links to LinkedIn, GitHub, or Naukri. Profile Discovery is disabled. Update resume content if needed.</p>
+              }
+              {!isLoadingDiscovery && !profileDiscoveryResult && hasProfileLinks &&
+                <p className="text-sm text-muted-foreground">Click &quot;Run Discovery&quot; to fetch and summarize online profile data (simulated search across LinkedIn, GitHub, Naukri).</p>
+              }
             </CardContent>
           </Card>
 
