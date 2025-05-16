@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -17,13 +18,13 @@ const ParseResumeInputSchema = z.object({
 export type ParseResumeInput = z.infer<typeof ParseResumeInputSchema>;
 
 const ParseResumeOutputSchema = z.object({
-  name: z.string().describe('The name of the candidate.'),
-  email: z.string().describe('The email address of the candidate.'),
-  phone: z.string().describe('The phone number of the candidate.'),
-  education: z.string().describe('The education history of the candidate.'),
-  experience: z.string().describe('The work experience of the candidate.'),
-  skills: z.string().describe('The skills of the candidate.'),
-  certifications: z.string().optional().describe('The certifications of the candidate, if any.'),
+  name: z.string().describe('The full name of the candidate. If not found, return an empty string or "Not found".'),
+  email: z.string().describe('The primary email address of the candidate. If not found, return an empty string or "Not found".'),
+  phone: z.string().describe('The primary phone number of the candidate. If not found, return an empty string or "Not found".'),
+  education: z.string().describe('A summary of the candidate\'s educational background. If not found, return an empty string or "Not found".'),
+  experience: z.string().describe('A summary of the candidate\'s work experience. If not found, return an empty string or "Not found".'),
+  skills: z.string().describe('A list or summary of the candidate\'s skills. If not found, return an empty string or "Not found".'),
+  certifications: z.string().optional().describe('Any relevant certifications of the candidate. If not found, return an empty string or "Not found".'),
 });
 export type ParseResumeOutput = z.infer<typeof ParseResumeOutputSchema>;
 
@@ -36,17 +37,20 @@ const parseResumePrompt = ai.definePrompt({
   input: {schema: ParseResumeInputSchema},
   output: {schema: ParseResumeOutputSchema},
   prompt: `You are an AI assistant that extracts information from resumes.
+Carefully analyze the "Resume Text" provided below. Your task is to extract the specified fields.
 
-  Extract the following information from the resume text provided:
-  - Name
-  - Email
-  - Phone
-  - Education
-  - Experience
-  - Skills
-  - Certifications (if any)
+- Name: The full name of the candidate.
+- Email: The primary email address.
+- Phone: The primary phone number.
+- Education: A summary of their educational background.
+- Experience: A summary of their work experience.
+- Skills: A list or summary of their skills.
+- Certifications: Any relevant certifications.
 
-  Resume Text: {{{resumeText}}}
+Resume Text:
+{{{resumeText}}}
+
+If any piece of information cannot be found in the "Resume Text", or if the text does not appear to be a valid resume, return an empty string for that field or a concise "Not found" message. Do NOT return placeholder type names like 'string' or 'object'. Provide only the extracted information as per the output schema.
   `,
 });
 
@@ -61,3 +65,4 @@ const parseResumeFlow = ai.defineFlow(
     return output!;
   }
 );
+
