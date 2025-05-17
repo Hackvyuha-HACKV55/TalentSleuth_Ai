@@ -29,6 +29,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "../ui/button";
+import { cn } from "@/lib/utils"; // Ensure cn is imported
 
 const mainNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -56,16 +57,14 @@ const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; ico
         <SidebarMenuButton
           asChild
           isActive={isActive}
-          // Active style is now: bg-sidebar-primary (gold/khaki) text-sidebar-primary-foreground (dark)
-          // Hover on non-active: bg-sidebar-accent (olive) text-sidebar-accent-foreground (light)
           className={cn(
             isActive ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-            "rounded-md" // Ensure rounding from image
+            "rounded-md" 
           )}
           tooltip={{ children: label, className: "whitespace-nowrap" }}
         >
           <a>
-            <Icon className={cn(isActive ? "text-sidebar-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground")} />
+            <Icon className={cn("text-muted-foreground", isActive ? "text-sidebar-primary-foreground" : "group-hover:text-sidebar-accent-foreground")} />
             <span>{label}</span>
           </a>
         </SidebarMenuButton>
@@ -177,4 +176,3 @@ export function DashboardSidebarNav() {
     </>
   );
 }
-```
