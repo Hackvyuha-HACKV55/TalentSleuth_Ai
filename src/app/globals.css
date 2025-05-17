@@ -4,92 +4,92 @@
 
 @layer base {
   :root {
-    --background: 220 25% 98%; /* Light Off-White */
-    --foreground: 220 10% 35%; /* Soft Grey */
+    --background: 210 40% 98%; /* Very Light Cool Off-White */
+    --foreground: 222 84% 4.9%; /* Near Black */
 
-    --card: 220 30% 96%; /* Very Light Grey for Cards (slightly translucent for glassmorphism base) */
-    --card-foreground: 220 10% 35%; /* Soft Grey */
+    --card: 210 40% 96.1%; /* Slightly Darker Light Cool Off-White for Cards */
+    --card-foreground: 222 84% 4.9%; /* Near Black */
 
-    --popover: 220 25% 98%; /* Light Off-White */
-    --popover-foreground: 220 10% 35%; /* Soft Grey */
+    --popover: 210 40% 98%; /* Very Light Cool Off-White */
+    --popover-foreground: 222 84% 4.9%; /* Near Black */
 
-    --primary: 255 92% 76%; /* Lavender */
-    --primary-foreground: 220 10% 20%; /* Darker Grey for contrast on Lavender */
+    --primary: 200 90% 50%; /* Vibrant Blue */
+    --primary-foreground: 210 40% 98%; /* Light Cool Off-White (for text on primary) */
 
-    --secondary: 220 20% 92%; /* Lighter Soft Grey */
-    --secondary-foreground: 255 92% 70%; /* Slightly darker Lavender for secondary text */
+    --secondary: 210 40% 93%; /* Lighter Cool Grey */
+    --secondary-foreground: 222 84% 4.9%; /* Near Black */
 
-    --muted: 220 20% 94%; /* Light Grey for muted backgrounds */
-    --muted-foreground: 220 10% 55%; /* Lighter Soft Grey for muted text */
+    --muted: 210 40% 90%; /* Medium Cool Grey for muted backgrounds */
+    --muted-foreground: 215 20.2% 65.1%; /* Soft Grey for muted text */
 
-    --accent: 255 92% 76%; /* Lavender */
-    --accent-foreground: 220 10% 20%; /* Darker Grey for contrast on Lavender */
+    --accent: 200 90% 50%; /* Vibrant Blue (same as primary for consistency) */
+    --accent-foreground: 210 40% 98%; /* Light Cool Off-White */
 
-    --destructive: 0 72% 51%; /* Adjusted Red */
+    --destructive: 0 72% 51%; /* Standard Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 20% 90%; /* Very Light Grey for borders */
-    --input: 220 20% 90%; /* Align input border with general border */
-    --ring: 255 92% 76%; /* Lavender for focus rings */
+    --border: 210 20% 88%; /* Light Cool Grey for borders */
+    --input: 210 20% 88%; /* Align input border with general border */
+    --ring: 200 90% 55%; /* Slightly darker blue for focus rings */
 
-    --radius: 0.75rem; /* Slightly reduced radius for a cleaner look, adjust if needed */
+    --radius: 1rem; /* Increased radius for softer, modern look */
 
-    --chart-1: 255 92% 70%;
-    --chart-2: 255 80% 65%;
-    --chart-3: 220 50% 60%;
-    --chart-4: 220 30% 70%;
-    --chart-5: 255 60% 75%;
+    --chart-1: 200 90% 50%;
+    --chart-2: 200 80% 60%;
+    --chart-3: 210 50% 60%;
+    --chart-4: 210 30% 70%;
+    --chart-5: 200 60% 70%;
 
     /* Sidebar specific theme variables */
-    --sidebar-background: 220 20% 97%; 
-    --sidebar-foreground: 220 10% 35%; 
-    --sidebar-primary: 255 92% 76%;
-    --sidebar-primary-foreground: 220 10% 20%;
-    --sidebar-accent: 255 92% 70%;
-    --sidebar-accent-foreground: 220 10% 20%;
-    --sidebar-border: 220 20% 88%;
-    --sidebar-ring: 255 92% 76%;
+    --sidebar-background: 210 30% 97%; 
+    --sidebar-foreground: 222 84% 4.9%; 
+    --sidebar-primary: 200 90% 50%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 200 80% 60%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 210 20% 85%;
+    --sidebar-ring: 200 90% 55%;
   }
 
   .dark {
     /* Basic dark mode adjustments, can be refined further */
-    --background: 220 10% 12%; 
-    --foreground: 220 15% 85%;
+    --background: 222 40% 10%; 
+    --foreground: 210 40% 90%;
 
-    --card: 220 10% 18%; 
-    --card-foreground: 220 15% 85%;
+    --card: 222 40% 15%; 
+    --card-foreground: 210 40% 90%;
 
-    --popover: 220 10% 12%; 
-    --popover-foreground: 220 15% 85%;
+    --popover: 222 40% 10%; 
+    --popover-foreground: 210 40% 90%;
 
-    --primary: 255 85% 70%; 
-    --primary-foreground: 220 5% 95%;
+    --primary: 200 80% 60%; 
+    --primary-foreground: 222 84% 4.9%;
 
-    --secondary: 220 10% 25%; 
-    --secondary-foreground: 255 85% 70%;
+    --secondary: 222 40% 20%; 
+    --secondary-foreground: 200 80% 60%;
 
-    --muted: 220 10% 22%; 
-    --muted-foreground: 220 10% 60%;
+    --muted: 222 40% 18%; 
+    --muted-foreground: 215 20.2% 55.1%;
 
-    --accent: 255 85% 70%; 
-    --accent-foreground: 220 5% 95%;
+    --accent: 200 80% 60%; 
+    --accent-foreground: 222 84% 4.9%;
 
     --destructive: 0 65% 55%; 
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 10% 28%; 
-    --input: 220 10% 28%; 
-    --ring: 255 85% 70%;
+    --border: 222 40% 25%; 
+    --input: 222 40% 25%; 
+    --ring: 200 80% 60%;
 
     /* Dark Sidebar specific theme variables */
-    --sidebar-background: 220 10% 10%; 
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 255 85% 70%;
-    --sidebar-primary-foreground: 220 5% 95%;
-    --sidebar-accent: 255 80% 65%;
-    --sidebar-accent-foreground: 220 5% 95%;
-    --sidebar-border: 220 10% 25%;
-    --sidebar-ring: 255 85% 70%;
+    --sidebar-background: 222 40% 8%; 
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 200 80% 60%;
+    --sidebar-primary-foreground: 222 84% 4.9%;
+    --sidebar-accent: 200 70% 50%;
+    --sidebar-accent-foreground: 222 84% 4.9%;
+    --sidebar-border: 222 40% 22%;
+    --sidebar-ring: 200 80% 60%;
   }
 }
 
@@ -113,5 +113,5 @@
 
 /* Custom rounded-2xl based on radius variable */
 .rounded-2xl {
-  border-radius: calc(var(--radius) + 0.25rem); /* existing was 1rem, now 0.75rem + 0.25rem */
+  border-radius: calc(var(--radius) * 1.25); /* e.g., 1rem * 1.25 = 1.25rem */
 }

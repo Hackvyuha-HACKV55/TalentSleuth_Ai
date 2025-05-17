@@ -8,16 +8,23 @@ import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig, Loader2 } from "
 import Link from "next/link";
 import { CandidateCard } from "@/components/domain/candidate-card";
 import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/lib/mock-data"; 
+import type { UnifiedCandidate } from "@/context/candidate-context"; // Updated import
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
   const { candidates, loadingCandidates } = useCandidateContext(); 
 
-  const recentCandidates: UnifiedCandidate[] = candidates.slice(0, 3); 
+  // Sort candidates by createdAt or updatedAt for "recent" to be more meaningful, descending
+  const recentCandidates: UnifiedCandidate[] = [...candidates]
+    .sort((a, b) => {
+      const dateA = a.updatedAt?.toMillis() || a.createdAt?.toMillis() || 0;
+      const dateB = b.updatedAt?.toMillis() || b.createdAt?.toMillis() || 0;
+      return dateB - dateA;
+    })
+    .slice(0, 3); 
 
   return (
-    <div className="space-y-8 w-full max-w-6xl">
+    <div className="space-y-8 w-full max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -27,7 +34,7 @@ export default function DashboardOverviewPage() {
             Here&apos;s an overview of your talent acquisition pipeline.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
            <Button asChild className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <Link href="/dashboard/upload-resume">
               <FileUp className="mr-2 h-4 w-4" /> Upload Resume
@@ -51,9 +58,9 @@ export default function DashboardOverviewPage() {
             {loadingCandidates ? (
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             ) : (
-              <div className="text-2xl font-bold text-foreground">{candidates.length}</div>
+              <div className="text-3xl font-bold text-foreground">{candidates.length}</div>
             )}
-            <p className="text-xs text-muted-foreground">In your talent pool</p> 
+            <p className="text-xs text-muted-foreground mt-1">In your talent pool</p> 
           </CardContent>
         </Card>
         <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -62,8 +69,9 @@ export default function DashboardOverviewPage() {
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">56</div> {/* Static for now, can be dynamic later */}
-            <p className="text-xs text-muted-foreground">+5 since last week</p>
+            {/* This should ideally come from Firestore jobRequisitions collection count */}
+            <div className="text-3xl font-bold text-foreground">N/A</div> 
+            <p className="text-xs text-muted-foreground mt-1">Active job postings</p>
           </CardContent>
         </Card>
         <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -75,31 +83,31 @@ export default function DashboardOverviewPage() {
             {loadingCandidates ? (
                <Loader2 className="h-6 w-6 animate-spin text-primary" />
             ) : (
-              <div className="text-2xl font-bold text-foreground">
+              <div className="text-3xl font-bold text-foreground">
                 {(() => {
-                  const scoredCandidates = candidates.filter(c => c.fitScore !== undefined && c.fitScore !== null);
+                  const scoredCandidates = candidates.filter(c => typeof c.fitScore === 'number');
                   if (scoredCandidates.length === 0) return "N/A";
                   const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
                   return `${Math.round(avg)}%`;
                 })()}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Across all matched roles</p>
+            <p className="text-xs text-muted-foreground mt-1">Across all matched roles</p>
           </CardContent>
         </Card>
       </div>
       
       <div>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Recent Candidates</h2>
-          <Button variant="link" asChild className="text-primary">
+          <Button variant="link" asChild className="text-primary hover:text-primary/80">
             <Link href="/dashboard/candidates">
               View All <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
         {loadingCandidates ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="ml-3 text-muted-foreground">Loading recent candidates...</p>
           </div>
@@ -112,7 +120,7 @@ export default function DashboardOverviewPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">No recent candidates to display. Try uploading a resume.</p>
+          <p className="text-muted-foreground text-center py-6">No recent candidates to display. Try uploading a resume.</p>
         )}
       </div>
 

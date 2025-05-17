@@ -43,15 +43,15 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-2xl rounded-2xl">
-      <CardHeader className="space-y-1 text-center">
-        <div className="flex justify-center items-center mb-4">
-          <Briefcase className="h-10 w-10 text-primary" />
+    <Card className="w-full max-w-md shadow-xl rounded-2xl border border-border/70">
+      <CardHeader className="space-y-2 text-center pb-4">
+        <div className="flex justify-center items-center mb-3">
+          <Briefcase className="h-12 w-12 text-primary" />
         </div>
         <CardTitle className="text-3xl font-bold text-primary">Welcome Back!</CardTitle>
-        <CardDescription>Enter your credentials to access TalentSleuth AI.</CardDescription>
+        <CardDescription className="text-md">Enter your credentials to access TalentSleuth AI.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="rounded-lg"
+              className="rounded-lg text-base"
             />
           </div>
           <div className="space-y-2">
@@ -79,15 +79,15 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="rounded-lg"
+              className="rounded-lg text-base"
             />
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg" disabled={isLoading}>
-            {isLoading ? "Logging in..." : <> <LogIn className="mr-2 h-4 w-4" /> Login </>}
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 text-base" disabled={isLoading}>
+            {isLoading ? "Logging in..." : <> <LogIn className="mr-2 h-5 w-5" /> Login </>}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-2 text-center">
+      <CardFooter className="flex flex-col space-y-3 text-center pt-6">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link href="/signup" passHref legacyBehavior>
