@@ -151,7 +151,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-5xl mx-auto">
       <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
         <CardHeader className="bg-secondary/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
