@@ -1,24 +1,28 @@
 
 # TalentSleuth AI - Your Virtual Talent Analyst
 
-TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams and assist job seekers in finding opportunities. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition. Candidate data and job requisitions are persistently stored using Firebase Firestore. Students can view and apply for open positions.
+TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams and assist job seekers in finding opportunities. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition. Candidate data, job requisitions, and applications are persistently stored using Firebase Firestore. Students can view and apply for open positions.
 
 ## Core Features
 
-*   **AI Resume Parsing:** Automatically extract key candidate information (contact details, education, experience, skills, certifications) from resumes (TXT, PDF, DOCX) using Gemini.
-*   **Dynamic Candidate Pool & Firestore Persistence:** Parsed resumes or student applications create candidate profiles stored in Firebase Firestore, managed via React Context. Data persists across sessions.
-*   **Candidate Dossier & Profile View:** Detailed view for each candidate showing parsed information, and sections for AI-driven insights (Profile Discovery, Red Flag Detection, Sentiment Analysis).
-*   **Cross-Platform Profile Discovery (Simulated):** AI simulates finding and summarizing candidate data from platforms like LinkedIn, GitHub, and Naukri based on name and email (discovery is more effective if resume text contains links to these platforms).
-*   **Red Flag Detection:** AI analyzes resume text against (simulated) profile data to identify discrepancies, frequent job switching, or incomplete/dated information.
-*   **AI Role Fitment Matching:** Upload a job description and select a candidate to get an AI-generated fitment score (0-100) and justification. Scores are updated in Firestore.
+*   **AI Resume Parsing & Firestore Persistence:** Automatically extract key candidate information (contact details, education, experience, skills, certifications) from resumes (TXT, PDF, DOCX) using Gemini. Parsed resumes create or update candidate profiles stored in Firebase Firestore, managed via React Context for real-time updates.
+*   **Candidate Dossier & Profile View:** Detailed view for each candidate showing parsed information, and sections for AI-driven insights:
+    *   **Simulated Cross-Platform Profile Discovery:** AI (simulates) finding and summarizing candidate data from platforms like LinkedIn, GitHub, and Naukri based on name and email (discovery is more effective if resume text contains links to these platforms).
+    *   **Red Flag Detection:** AI analyzes resume text against (simulated) profile data to identify discrepancies, frequent job switching, or incomplete/dated information.
+    *   **Sentiment Analysis:** Analyze the sentiment of text (e.g., endorsements, reviews) related to a candidate.
+*   **AI Role Fitment Matching:** Upload a job description and select a candidate to get an AI-generated fitment score (0-100) and justification. Scores are updated in the candidate's Firestore record.
 *   **AI Interview Question Generator:** Generate tailored interview questions based on job title and candidate skills. Can auto-fill details by selecting an existing candidate from the database.
-*   **Sentiment Analysis:** Analyze the sentiment of text (e.g., endorsements, reviews) related to a candidate.
-*   **User Authentication:** Secure sign-up, login, and password reset functionality using Firebase Authentication.
-*   **Candidate Deletion:** Ability to delete candidate profiles from the database (recruiter-side).
 *   **Side-by-Side Candidate Comparison:** A dashboard to compare key details of multiple candidates (recruiter-side).
 *   **Basic ATS - Job Requisition Management:** Recruiters can create, view, and manage job postings (title, description, location, salary, status), stored in Firestore.
-*   **Basic ATS - Candidate Application Tracking:** Recruiters can assign existing candidates to jobs. Students can apply for open jobs, creating an application record.
-*   **Student Job Portal:** Students can view open job requisitions and apply for them, which creates a basic candidate profile if one doesn't exist.
+*   **Basic ATS - Candidate Application Tracking:** Recruiters can assign existing candidates to jobs.
+*   **Student Job Portal & Application System:**
+    *   Students can view open job requisitions.
+    *   Students can apply for jobs by uploading their resume.
+    *   The uploaded resume is parsed by AI.
+    *   A new candidate profile is created in Firestore if one doesn't exist for the student's email, or an existing profile is updated with the new resume data.
+    *   An application record linking the student and job is created in Firestore.
+*   **User Authentication:** Secure sign-up, login, and password reset functionality for both recruiters (dashboard access) and students (portal access) using Firebase Authentication.
+*   **Candidate Deletion:** Ability for recruiters to delete candidate profiles from Firestore.
 
 ## Planned ATS Features (Future Development)
 
@@ -34,7 +38,7 @@ The application aims to expand its ATS capabilities by integrating with Google W
 
 ### 3. **Candidate Application Tracking (Enhanced)**
     *   Track candidate applications per job requisition with more detailed status updates (Screening, Interviewing, Offered, Hired, Rejected).
-    *   Link candidates to jobs, store application metadata (date, source, status) in Firestore.
+    *   UI to update application statuses.
 
 ### 4. **Interview Scheduling & Virtual Meetings (Google Calendar + Meet)**
     *   **Calendar API**: Schedule interviews, check availability.
@@ -77,12 +81,11 @@ The application aims to expand its ATS capabilities by integrating with Google W
 -   **Database:**
     *   **Firebase Firestore:** NoSQL cloud database for storing and syncing candidate data, job requisitions, and job applications.
 -   **Authentication:**
-    *   **Firebase Authentication:** Manages user sign-up, login, and session management.
+    *   **Firebase Authentication:** Manages user sign-up, login, and session management for recruiters and students.
 -   **Client-Side State Management:**
     *   **React Context API:** Used for managing global UI state like authentication status and the dynamic list of candidates (synced with Firestore).
 -   **Development Tools:**
     *   **npm/yarn:** Package management.
-    *   **ESLint & Prettier:** (Assumed for code quality)
 
 ## Project Structure
 
@@ -92,7 +95,7 @@ talentsleuth-ai/
 ├── README.md             # This file
 ├── components.json       # ShadCN UI configuration
 ├── next.config.ts        # Next.js configuration
-├── package.json          # Project dependencies and scripts (serves as requirements list)
+├── package.json          # Project dependencies and scripts
 ├── postcss.config.js     # PostCSS configuration (for Tailwind)
 ├── public/               # Static assets (images, fonts, etc.)
 ├── src/
@@ -107,9 +110,9 @@ talentsleuth-ai/
 │   │       ├── interview-question-generator.ts
 │   │       └── sentiment-analysis.ts
 │   ├── app/              # Next.js App Router directory
-│   │   ├── (auth)/         # Authentication-related pages (login, signup, forgot-password)
+│   │   ├── (auth)/         # Recruiter authentication pages (login, signup, forgot-password)
 │   │   ├── dashboard/      # Main application dashboard routes (for recruiters)
-│   │   │   ├── ats/
+│   │   │   ├── ats/        # Applicant Tracking System features
 │   │   │   │   └── jobs/
 │   │   │   │       ├── create/page.tsx  # Create new job requisition
 │   │   │   │       ├── [id]/page.tsx    # View job requisition & applicants
@@ -125,6 +128,9 @@ talentsleuth-ai/
 │   │   │   ├── layout.tsx
 │   │   │   └── page.tsx      # Dashboard overview
 │   │   ├── student/          # Student-facing portal
+│   │   │   ├── (auth)/       # Student authentication pages (login, signup)
+│   │   │   │   ├── login/page.tsx
+│   │   │   │   └── signup/page.tsx
 │   │   │   ├── jobs/page.tsx # Page for students to view and apply for jobs
 │   │   │   └── layout.tsx    # Layout for student portal
 │   │   ├── globals.css     # Global styles and Tailwind directives
@@ -142,7 +148,7 @@ talentsleuth-ai/
 │   │   └── use-toast.ts
 │   ├── lib/                # Utility functions and configurations
 │   │   ├── firebase.ts     # Firebase initialization (Auth, Firestore)
-│   │   ├── mock-data.ts    # (Reference only, Firestore is primary data source)
+│   │   ├── mock-data.ts    # (Not primary data source; Firestore is)
 │   │   └── utils.ts        # General utility functions (e.g., cn for Tailwind)
 ├── tailwind.config.ts    # Tailwind CSS configuration
 └── tsconfig.json         # TypeScript configuration
@@ -161,7 +167,7 @@ Before you begin, ensure you have the following installed:
 -   **(Optional for planned ATS features) Google Cloud Project & API Keys:**
     *   For planned features like Google Drive, Gmail, Calendar, and Meet integration, you'll need a Google Cloud Platform project with these APIs enabled.
     *   You'll also need to generate API keys or OAuth 2.0 credentials for these services. Store these in your `.env` file (e.g., `GOOGLE_DRIVE_API_KEY`, `GOOGLE_GMAIL_API_KEY`, etc.).
-    *   **Securely manage these credentials.** The keys provided are for example only and should be treated as sensitive.
+    *   **Securely manage these credentials.**
 
 ## Setup and Running Locally
 
@@ -176,8 +182,8 @@ Follow these steps to get the project running on your local machine:
     cd path/to/your/talentsleuth-ai-folder
     ```
 
-3.  **Install Dependencies (Requirements):**
-    The `package.json` file lists all necessary dependencies (this is the Node.js equivalent of a `requirements.txt` file). Install them using npm or yarn:
+3.  **Install Dependencies:**
+    The `package.json` file lists all necessary dependencies. Install them using npm or yarn:
     ```bash
     npm install
     ```
@@ -189,7 +195,7 @@ Follow these steps to get the project running on your local machine:
 
 4.  **Configure Firebase:**
     *   Open `src/lib/firebase.ts`.
-    *   Replace the placeholder `firebaseConfig` object with your actual Firebase project's configuration. You can find this in your Firebase project settings (Project settings > General > Your apps > Web app > SDK setup and configuration > Config). **The provided config in the file is for a sample project and should be replaced.**
+    *   Replace the placeholder `firebaseConfig` object with your actual Firebase project's configuration. You can find this in your Firebase project settings (Project settings > General > Your apps > Web app > SDK setup and configuration > Config). **The provided config in the file is for a sample project and should be replaced if it's not already yours.**
 
 5.  **Set Up Environment Variables:**
     *   Create a new file named `.env` in the root directory of the project (if it doesn't exist).
@@ -210,7 +216,7 @@ Follow these steps to get the project running on your local machine:
 
 6.  **Firebase Security Rules (Important for Firestore):**
     *   Go to your Firebase Console -> Firestore Database -> Rules.
-    *   **For the Student Job Portal to work correctly (allowing anyone to view open jobs), you need to adjust the rules for `jobRequisitions`.**
+    *   **For the Student Job Portal to work correctly (allowing anyone to view open jobs, and students to apply), and for recruiters to manage data, you need appropriate rules.**
     *   **Example (use with caution, refine for production):**
         ```
         rules_version = '2';
@@ -221,28 +227,36 @@ Follow these steps to get the project running on your local machine:
               allow read, write: if request.auth != null && request.auth.uid == userId;
             }
             match /candidates/{candidateId} {
+                // Allow authenticated users (recruiters) to read/write.
+                // Students effectively write/update their own profile via the student application flow.
                 allow read, write: if request.auth != null; 
             }
-            // --- THIS IS THE CRUCIAL PART FOR STUDENT JOB VIEWING ---
             match /jobRequisitions/{jobId} {
                 // Public can read, only authenticated (recruiters) can create/update/delete
                 allow read: if true; // Allows anyone to read job requisitions
                 allow create, update, delete: if request.auth != null; // Recruiters need to be logged in to manage jobs
             }
-            // --- END CRUCIAL PART ---
             match /jobApplications/{applicationId} {
-                // Allow authenticated users to create applications for themselves
-                // Allow read if user is associated with the job (e.g., recruiter) or is the applicant
+                // Allow authenticated users to create applications for themselves (candidateEmail matches their auth email)
+                // Allow authenticated recruiters to read all applications.
                 allow create: if request.auth != null && request.resource.data.candidateEmail == request.auth.token.email;
-                allow read: if request.auth != null; // Simplistic, refine based on roles (e.g., recruiter or applicant)
-                // Add update/delete rules as needed, e.g., only recruiter can update status
+                allow read: if request.auth != null; // Simplistic for now, recruiters can read all.
+                // Add update/delete rules as needed (e.g., only recruiter can update status).
             }
           }
         }
         ```
-    *   **For production, you MUST define more granular security rules.** For example, students should only be able to create applications and read jobs, while recruiters can manage jobs and all applications.
+    *   **For production, you MUST define more granular security rules.**
 
-7.  **Run Genkit Development Server:**
+7.  **Firestore Composite Index (CRUCIAL for Student Job Portal):**
+    *   The student job listing page queries jobs by `status` and orders them by `createdAt`. This requires a composite index in Firestore.
+    *   If you see errors in your browser console about a missing index when viewing `/student/jobs`, Firebase will provide a direct link to create it. Follow that link.
+    *   The index fields will typically be:
+        *   Collection ID: `jobRequisitions`
+        *   Fields to index: `status` (Ascending), `createdAt` (Descending)
+    *   Wait for the index to finish building in the Firebase console.
+
+8.  **Run Genkit Development Server:**
     Genkit flows run on a separate development server. Start it by running:
     ```bash
     npm run genkit:dev
@@ -251,20 +265,20 @@ Follow these steps to get the project running on your local machine:
     ```bash
     npm run genkit:watch
     ```
-    This server typically starts on `http://localhost:4000` (or the port configured in your Genkit setup) and will show logs for Genkit operations. Keep this terminal window open.
+    This server typically starts on `http://localhost:4000`. Keep this terminal window open.
 
-8.  **Run Next.js Development Server:**
+9.  **Run Next.js Development Server:**
     In a **new** terminal window or tab (while the Genkit server is still running), start the Next.js frontend application:
     ```bash
     npm run dev
     ```
     This command starts the Next.js development server, usually on `http://localhost:9002` (as configured in `package.json`).
 
-9.  **Access the Application:**
+10. **Access the Application:**
     Open your web browser and navigate to:
     [http://localhost:9002](http://localhost:9002)
 
-    You should now see the TalentSleuth AI application running. You can sign up for an account, log in, and start using the features for recruiters. Students can access the "Student Job Portal" link on the landing page.
+    You should now see the TalentSleuth AI application running. Recruiters can sign up/login to access the dashboard. Students can use the "Student Job Portal" link on the landing page (which directs to student login, then to job listings).
 
 ## Available Scripts
 
@@ -281,11 +295,11 @@ In the `package.json` file, you'll find several scripts for managing the project
 ## Further Development & Considerations
 
 *   **Full ATS Feature Implementation:** Gradually build out the remaining ATS features, including Google Workspace API integrations (OAuth 2.0 setup will be necessary for user-specific data access for Gmail, Calendar, Drive).
-*   **Robust Firestore Security Rules:** This is paramount for any production application. Define rules based on user roles (recruiter vs. student/applicant).
+*   **Robust Firestore Security Rules:** This is paramount for any production application. Define rules based on user roles.
 *   **Error Handling and UI Polish:** Enhance error handling for AI flows, API calls, and Firestore operations.
 *   **File Handling Robustness:** Improve handling and user feedback for various resume file types, sizes, and potential parsing issues.
-*   **Security:** Ensure API keys are managed securely and not exposed on the client-side if possible for services that require server-to-server calls. Use Firebase App Check.
+*   **Security:** Ensure API keys are managed securely. Use Firebase App Check.
 *   **Scalability:** For larger applications, consider Firestore data structuring, indexing, and query optimization.
-*   **User Roles:** Implement distinct user roles (e.g., in Firestore user profiles) to control access to different parts of the application (recruiter dashboard vs. student portal).
-*   **Student Profile Management:** Allow students to update their auto-created profiles, upload resumes, etc.
-
+*   **User Roles:** Implement more distinct user roles (e.g., in Firestore user profiles) to control access to different parts of the application if needed beyond current auth separation.
+*   **Student Profile Management:** Allow students to fully manage their profiles after auto-creation.
+```
