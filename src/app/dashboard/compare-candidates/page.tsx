@@ -21,7 +21,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto"> {/* Adjusted max-width for wider table content */}
+    <div className="space-y-8 max-w-6xl mx-auto"> 
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />
@@ -38,7 +38,7 @@ export default function CompareCandidatesPage() {
           <p className="text-lg text-muted-foreground">Loading candidates...</p>
         </div>
       ) : candidates.length > 0 ? (
-        <div className="border rounded-lg shadow-md overflow-x-auto"> {/* Added overflow-x-auto for table responsiveness */}
+        <div className="border rounded-lg shadow-md overflow-x-auto"> 
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
@@ -61,9 +61,9 @@ export default function CompareCandidatesPage() {
                       <AvatarFallback>{getInitials(candidate.name)}</AvatarFallback>
                     </Avatar>
                   </TableCell>
-                  <TableCell className="font-medium text-foreground whitespace-nowrap">{candidate.name}</TableCell> {/* Added whitespace-nowrap */}
-                  <TableCell className="text-muted-foreground whitespace-nowrap">{candidate.role || "N/A"}</TableCell> {/* Added whitespace-nowrap */}
-                  <TableCell className="text-muted-foreground truncate max-w-xs">{candidate.email}</TableCell> {/* Added truncate and max-w for long emails */}
+                  <TableCell className="font-medium text-foreground whitespace-nowrap">{candidate.name}</TableCell> 
+                  <TableCell className="text-muted-foreground whitespace-nowrap">{candidate.role || "N/A"}</TableCell> 
+                  <TableCell className="text-muted-foreground truncate max-w-xs">{candidate.email}</TableCell> 
                   <TableCell>
                     {candidate.topSkill ? (
                       <Badge variant="secondary" className="whitespace-nowrap">{candidate.topSkill}</Badge> 
