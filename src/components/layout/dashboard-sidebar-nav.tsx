@@ -13,7 +13,7 @@ import {
   LogOut,
   HelpCircle,
   Columns, 
-  Archive, // Icon for ATS
+  Archive, 
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -56,10 +56,16 @@ const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; ico
         <SidebarMenuButton
           asChild
           isActive={isActive}
+          // Active style is now: bg-sidebar-primary (gold/khaki) text-sidebar-primary-foreground (dark)
+          // Hover on non-active: bg-sidebar-accent (olive) text-sidebar-accent-foreground (light)
+          className={cn(
+            isActive ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            "rounded-md" // Ensure rounding from image
+          )}
           tooltip={{ children: label, className: "whitespace-nowrap" }}
         >
           <a>
-            <Icon />
+            <Icon className={cn(isActive ? "text-sidebar-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground")} />
             <span>{label}</span>
           </a>
         </SidebarMenuButton>
@@ -93,7 +99,7 @@ export function DashboardSidebarNav() {
       <SidebarSeparator />
 
       <SidebarGroup>
-        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">Main</SidebarGroupLabel>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center text-muted-foreground/80">Main</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             {mainNavItems.map((item) => (
@@ -106,7 +112,7 @@ export function DashboardSidebarNav() {
       <SidebarSeparator />
       
       <SidebarGroup>
-        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">Tools</SidebarGroupLabel>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center text-muted-foreground/80">Tools</SidebarGroupLabel>
         <SidebarGroupContent>
            <SidebarMenu>
             {toolsNavItems.map((item) => (
@@ -119,7 +125,7 @@ export function DashboardSidebarNav() {
       <SidebarSeparator />
       
       <SidebarGroup>
-        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">ATS</SidebarGroupLabel>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center text-muted-foreground/80">ATS</SidebarGroupLabel>
         <SidebarGroupContent>
            <SidebarMenu>
             {atsNavItems.map((item) => (
@@ -135,17 +141,18 @@ export function DashboardSidebarNav() {
       <SidebarSeparator />
       
       <SidebarGroup>
-        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center text-muted-foreground/80">
           Account
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenuItem>
              <SidebarMenuButton
                 asChild
+                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md"
                 tooltip={{ children: "Settings", className: "whitespace-nowrap" }}
               >
               <Link href="/dashboard/settings" className="flex items-center">
-                <Settings />
+                <Settings className="text-muted-foreground group-hover:text-sidebar-accent-foreground" />
                 <span>Settings</span>
               </Link>
             </SidebarMenuButton>
@@ -155,9 +162,9 @@ export function DashboardSidebarNav() {
       
       <SidebarFooter>
         <div className="flex items-center space-x-3 p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
-          <Avatar className="h-9 w-9 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
+          <Avatar className="h-9 w-9 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 border-2 border-primary/50">
             <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || "User"} />
-            <AvatarFallback>{getInitials(user?.displayName || user?.email)}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(user?.displayName || user?.email)}</AvatarFallback>
           </Avatar>
           <div className="group-data-[collapsible=icon]:hidden">
             <p className="text-sm font-medium text-foreground truncate">{user?.displayName || user?.email}</p>
@@ -170,3 +177,4 @@ export function DashboardSidebarNav() {
     </>
   );
 }
+```

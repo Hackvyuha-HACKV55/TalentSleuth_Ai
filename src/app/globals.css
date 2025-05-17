@@ -1,95 +1,97 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Very Light Cool Off-White */
-    --foreground: 222 84% 4.9%; /* Near Black */
+    /* Palette based on Olive Green, White, Off-White */
+    --background: 0 0% 98%; /* Very Light Off-White / Almost White (Main Content BG) */
+    --foreground: 0 0% 25%; /* Dark Grey (Main Text) */
 
-    --card: 210 40% 96.1%; /* Slightly Darker Light Cool Off-White for Cards */
-    --card-foreground: 222 84% 4.9%; /* Near Black */
+    --card: 0 0% 96%; /* Off-White (Cards, Sidebar BG) */
+    --card-foreground: 0 0% 25%; /* Dark Grey (Text on Cards) */
 
-    --popover: 210 40% 98%; /* Very Light Cool Off-White */
-    --popover-foreground: 222 84% 4.9%; /* Near Black */
+    --popover: 0 0% 96%; /* Off-White */
+    --popover-foreground: 0 0% 25%; /* Dark Grey */
 
-    --primary: 200 90% 50%; /* Vibrant Blue */
-    --primary-foreground: 210 40% 98%; /* Light Cool Off-White (for text on primary) */
+    --primary: 80 25% 38%; /* Muted Olive Green (Accent) */
+    --primary-foreground: 60 50% 97%; /* Light Cream/Off-White (Text on Olive) */
 
-    --secondary: 210 40% 93%; /* Lighter Cool Grey */
-    --secondary-foreground: 222 84% 4.9%; /* Near Black */
+    --secondary: 0 0% 93%; /* Light Grey (e.g., Badge Backgrounds) */
+    --secondary-foreground: 80 25% 30%; /* Darker Olive (Text on Light Grey Badges/Secondary elements) */
 
-    --muted: 210 40% 90%; /* Medium Cool Grey for muted backgrounds */
-    --muted-foreground: 215 20.2% 65.1%; /* Soft Grey for muted text */
+    --muted: 0 0% 90%; /* Light Grey (Muted Backgrounds if needed) */
+    --muted-foreground: 0 0% 45%; /* Medium Grey (Secondary/Muted Text) */
 
-    --accent: 200 90% 50%; /* Vibrant Blue (same as primary for consistency) */
-    --accent-foreground: 210 40% 98%; /* Light Cool Off-White */
+    --accent: 80 25% 38%; /* Muted Olive Green (Same as Primary) */
+    --accent-foreground: 60 50% 97%; /* Light Cream/Off-White */
 
     --destructive: 0 72% 51%; /* Standard Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 20% 88%; /* Light Cool Grey for borders */
-    --input: 210 20% 88%; /* Align input border with general border */
-    --ring: 200 90% 55%; /* Slightly darker blue for focus rings */
+    --border: 0 0% 88%; /* Light Grey (Borders) */
+    --input: 0 0% 88%; /* Light Grey (Input Borders) */
+    --ring: 80 25% 42%; /* Slightly Brighter Olive (Focus Rings) */
 
-    --radius: 1rem; /* Increased radius for softer, modern look */
+    --radius: 0.75rem; /* Default radius. Image suggests moderate rounding. */
 
-    --chart-1: 200 90% 50%;
-    --chart-2: 200 80% 60%;
-    --chart-3: 210 50% 60%;
-    --chart-4: 210 30% 70%;
-    --chart-5: 200 60% 70%;
+    --chart-1: 80 25% 38%;
+    --chart-2: 80 20% 50%;
+    --chart-3: 70 20% 60%;
+    --chart-4: 60 15% 70%;
+    --chart-5: 0 0% 80%;
 
     /* Sidebar specific theme variables */
-    --sidebar-background: 210 30% 97%; 
-    --sidebar-foreground: 222 84% 4.9%; 
-    --sidebar-primary: 200 90% 50%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 200 80% 60%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 210 20% 85%;
-    --sidebar-ring: 200 90% 55%;
+    --sidebar-background: 0 0% 96%; /* Off-White - same as card */
+    --sidebar-foreground: 0 0% 25%; /* Dark Grey Text */
+    --sidebar-primary: 55 36% 63%; /* Gold/Khaki for active item BG (from image) */
+    --sidebar-primary-foreground: 0 0% 25%; /* Dark Text for active item (from image) */
+    --sidebar-accent: 80 25% 45%; /* Olive for hover on non-active sidebar items */
+    --sidebar-accent-foreground: 60 50% 97%; /* Light text for hover on non-active */
+    --sidebar-border: 0 0% 88%; /* Light Grey */
+    --sidebar-ring: 80 25% 42%; /* Olive */
   }
 
   .dark {
-    /* Basic dark mode adjustments, can be refined further */
-    --background: 222 40% 10%; 
-    --foreground: 210 40% 90%;
+    /* Basic dark mode adjustments - can be refined if dark mode is a priority */
+    --background: 220 15% 10%;
+    --foreground: 0 0% 90%;
 
-    --card: 222 40% 15%; 
-    --card-foreground: 210 40% 90%;
+    --card: 220 15% 15%;
+    --card-foreground: 0 0% 90%;
 
-    --popover: 222 40% 10%; 
-    --popover-foreground: 210 40% 90%;
+    --popover: 220 15% 15%;
+    --popover-foreground: 0 0% 90%;
 
-    --primary: 200 80% 60%; 
-    --primary-foreground: 222 84% 4.9%;
+    --primary: 80 30% 55%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 222 40% 20%; 
-    --secondary-foreground: 200 80% 60%;
+    --secondary: 220 15% 25%;
+    --secondary-foreground: 80 30% 55%;
 
-    --muted: 222 40% 18%; 
-    --muted-foreground: 215 20.2% 55.1%;
+    --muted: 220 15% 20%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 200 80% 60%; 
-    --accent-foreground: 222 84% 4.9%;
+    --accent: 80 30% 55%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 65% 55%; 
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 222 40% 25%; 
-    --input: 222 40% 25%; 
-    --ring: 200 80% 60%;
+    --border: 220 15% 30%;
+    --input: 220 15% 30%;
+    --ring: 80 30% 55%;
 
     /* Dark Sidebar specific theme variables */
-    --sidebar-background: 222 40% 8%; 
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 200 80% 60%;
-    --sidebar-primary-foreground: 222 84% 4.9%;
-    --sidebar-accent: 200 70% 50%;
-    --sidebar-accent-foreground: 222 84% 4.9%;
-    --sidebar-border: 222 40% 22%;
-    --sidebar-ring: 200 80% 60%;
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 55 30% 50%; /* Darker Gold/Khaki */
+    --sidebar-primary-foreground: 0 0% 95%; /* Lighter text for dark active */
+    --sidebar-accent: 80 25% 50%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 15% 25%;
+    --sidebar-ring: 80 30% 55%;
   }
 }
 
@@ -113,5 +115,5 @@
 
 /* Custom rounded-2xl based on radius variable */
 .rounded-2xl {
-  border-radius: calc(var(--radius) * 1.25); /* e.g., 1rem * 1.25 = 1.25rem */
+  border-radius: 1.125rem; /* Effectively calc(0.75rem * 1.5) */
 }

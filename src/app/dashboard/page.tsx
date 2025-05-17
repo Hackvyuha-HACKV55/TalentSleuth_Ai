@@ -8,13 +8,12 @@ import { ArrowRight, FileUp, ClipboardList, Users, BarChartBig, Loader2 } from "
 import Link from "next/link";
 import { CandidateCard } from "@/components/domain/candidate-card";
 import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/context/candidate-context"; // Updated import
+import type { UnifiedCandidate } from "@/context/candidate-context"; 
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
   const { candidates, loadingCandidates } = useCandidateContext(); 
 
-  // Sort candidates by createdAt or updatedAt for "recent" to be more meaningful, descending
   const recentCandidates: UnifiedCandidate[] = [...candidates]
     .sort((a, b) => {
       const dateA = a.updatedAt?.toMillis() || a.createdAt?.toMillis() || 0;
@@ -22,6 +21,24 @@ export default function DashboardOverviewPage() {
       return dateB - dateA;
     })
     .slice(0, 3); 
+
+  const StatCard = ({ title, value, icon: Icon, description, isLoading }: { title: string; value: string | number; icon: React.ElementType; description: string; isLoading?: boolean }) => (
+    <Card className="rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-primary">{title}</CardTitle>
+        <Icon className="h-5 w-5 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Loader2 className="h-7 w-7 animate-spin text-primary" />
+        ) : (
+          <div className="text-3xl font-bold text-foreground">{value}</div>
+        )}
+        <p className="text-xs text-muted-foreground mt-1">{description}</p> 
+      </CardContent>
+    </Card>
+  );
+
 
   return (
     <div className="space-y-8 w-full max-w-6xl mx-auto">
@@ -35,12 +52,12 @@ export default function DashboardOverviewPage() {
           </p>
         </div>
         <div className="flex gap-3">
-           <Button asChild className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
+           <Button asChild size="lg" className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <Link href="/dashboard/upload-resume">
               <FileUp className="mr-2 h-4 w-4" /> Upload Resume
             </Link>
           </Button>
-           <Button asChild variant="outline" className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
+           <Button asChild size="lg" variant="outline" className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <Link href="/dashboard/upload-jd">
               <ClipboardList className="mr-2 h-4 w-4" /> Upload Job Description
             </Link>
@@ -49,52 +66,31 @@ export default function DashboardOverviewPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Total Candidates</CardTitle>
-            <Users className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {loadingCandidates ? (
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            ) : (
-              <div className="text-3xl font-bold text-foreground">{candidates.length}</div>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">In your talent pool</p> 
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Job Descriptions</CardTitle>
-            <ClipboardList className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {/* This should ideally come from Firestore jobRequisitions collection count */}
-            <div className="text-3xl font-bold text-foreground">N/A</div> 
-            <p className="text-xs text-muted-foreground mt-1">Active job postings</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Average Fit Score</CardTitle>
-            <BarChartBig className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {loadingCandidates ? (
-               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            ) : (
-              <div className="text-3xl font-bold text-foreground">
-                {(() => {
+        <StatCard 
+            title="Total Candidates" 
+            value={candidates.length} 
+            icon={Users} 
+            description="In your talent pool"
+            isLoading={loadingCandidates}
+        />
+        <StatCard 
+            title="Job Descriptions" 
+            value={"N/A"} // Placeholder - needs actual data
+            icon={ClipboardList} 
+            description="Active job postings"
+        />
+        <StatCard 
+            title="Average Fit Score" 
+            value={(() => {
                   const scoredCandidates = candidates.filter(c => typeof c.fitScore === 'number');
                   if (scoredCandidates.length === 0) return "N/A";
                   const avg = scoredCandidates.reduce((sum, c) => sum + (c.fitScore!), 0) / scoredCandidates.length;
                   return `${Math.round(avg)}%`;
-                })()}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">Across all matched roles</p>
-          </CardContent>
-        </Card>
+                })()} 
+            icon={BarChartBig} 
+            description="Across all matched roles"
+            isLoading={loadingCandidates}
+        />
       </div>
       
       <div>
@@ -127,3 +123,4 @@ export default function DashboardOverviewPage() {
     </div>
   );
 }
+```

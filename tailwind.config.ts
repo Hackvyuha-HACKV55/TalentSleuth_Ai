@@ -53,18 +53,18 @@ export default {
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',
-  				primary: 'hsl(var(--sidebar-primary))',
-  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-  				accent: 'hsl(var(--sidebar-accent))',
-  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				primary: 'hsl(var(--sidebar-primary))', // Gold/Khaki for active item
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))', // Dark text for active
+  				accent: 'hsl(var(--sidebar-accent))', // Olive for hover on non-active
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))', // Light text for hover
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
   		borderRadius: {
-  			lg: 'var(--radius)', // Now 1rem
-  			md: 'calc(var(--radius) - 0.25rem)', // e.g., 0.75rem
-  			sm: 'calc(var(--radius) - 0.5rem)' // e.g., 0.5rem
+  			lg: 'var(--radius)', // Now 0.75rem
+  			md: 'calc(var(--radius) - 0.125rem)', // e.g., 0.625rem
+  			sm: 'calc(var(--radius) - 0.25rem)' // e.g., 0.5rem
   		},
   		keyframes: {
   			'accordion-down': {
@@ -97,3 +97,4 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+```

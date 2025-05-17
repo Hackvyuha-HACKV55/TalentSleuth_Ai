@@ -17,7 +17,6 @@ export default function Navbar() {
       router.push("/");
     } catch (error) {
       console.error("Failed to sign out", error);
-      // Handle error (e.g., show a toast notification)
     }
   };
 
@@ -30,10 +29,10 @@ export default function Navbar() {
             TalentSleuth AI
           </span>
         </Link>
-        <nav className="flex items-center space-x-4">
+        <nav className="flex items-center space-x-2 md:space-x-4">
           {user && (
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard" className="text-sm font-medium text-foreground hover:text-primary">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard" className="text-sm font-medium text-primary hover:text-primary/80">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 Dashboard
               </Link>
@@ -44,7 +43,7 @@ export default function Navbar() {
               Loading...
             </Button>
           ) : user ? (
-            <Button variant="outline" size="sm" onClick={handleSignOut} className="text-sm font-medium">
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="text-sm font-medium text-primary hover:text-primary/80">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -69,3 +68,4 @@ export default function Navbar() {
     </header>
   );
 }
+```

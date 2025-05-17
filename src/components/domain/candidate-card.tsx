@@ -20,7 +20,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useCandidateContext } from "@/context/candidate-context";
-// import { useToast } from "@/hooks/use-toast"; // Toast is handled by context now
 import { useState } from "react";
 
 export type Candidate = UnifiedCandidate;
@@ -31,7 +30,6 @@ interface CandidateCardProps {
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
   const { deleteCandidate } = useCandidateContext();
-  // const { toast } = useToast(); // Toast messages for delete success/failure are now in CandidateContext
   const [isDeleting, setIsDeleting] = useState(false);
 
 
@@ -46,26 +44,24 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     if (candidate.id) {
       setIsDeleting(true);
       await deleteCandidate(candidate.id);
-      // Toast message is handled by the context after successful Firestore deletion
       setIsDeleting(false); 
-      // No need to close dialog explicitly, AlertDialogAction does this
     }
   };
 
   const displayName = candidate.name || "Unnamed Candidate";
   const displayEmail = candidate.email || "No email";
   const displayRole = candidate.role || "Role not specified";
-  const displayTopSkill = candidate.topSkill || "Skill not specified";
+  const displayTopSkill = candidate.topSkill || "Not Specified";
 
   return (
-    <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+    <Card className="rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card border border-border/50">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-3">
-        <Avatar className="h-12 w-12 border-2 border-primary">
+        <Avatar className="h-12 w-12 border-2 border-primary/30">
           <AvatarImage src={candidate.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional" />
           <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(displayName)}</AvatarFallback>
         </Avatar>
-        <div className="grid gap-1 flex-grow overflow-hidden"> {/* Added overflow-hidden here */}
-          <CardTitle className="text-xl text-foreground truncate">{displayName}</CardTitle>
+        <div className="grid gap-1 flex-grow overflow-hidden"> 
+          <CardTitle className="text-lg text-foreground truncate">{displayName}</CardTitle>
           <CardDescription className="text-sm text-muted-foreground truncate">{displayRole}</CardDescription>
         </div>
         <AlertDialog>
@@ -111,7 +107,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         )}
       </CardContent>
       <CardFooter>
-        <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg" disabled={!candidate.id}>
+        <Button asChild size="lg" className="w-full rounded-lg" disabled={!candidate.id}>
           <Link href={`/dashboard/candidates/${candidate.id}`}>
             View Profile <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -120,3 +116,4 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     </Card>
   );
 }
+```
