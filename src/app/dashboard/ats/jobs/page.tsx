@@ -72,7 +72,7 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-5xl mx-auto">
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -90,7 +90,7 @@ export default function JobRequisitionsPage() {
         </Button>
       </div>
 
-      <Card className="rounded-2xl shadow-xl">
+      <Card className="rounded-2xl shadow-xl bg-card border">
         <CardHeader>
           <CardTitle>Current Job Openings</CardTitle>
           <CardDescription>
@@ -104,7 +104,7 @@ export default function JobRequisitionsPage() {
               <p className="ml-3 text-muted-foreground">Loading job requisitions...</p>
             </div>
           ) : jobs.length > 0 ? (
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg overflow-hidden bg-card">
             <Table>
               <TableHeader className="bg-card/50"> 
                 <TableRow>
@@ -117,7 +117,7 @@ export default function JobRequisitionsPage() {
               </TableHeader>
               <TableBody>
                 {jobs.map((job) => (
-                  <TableRow key={job.id}>
+                  <TableRow key={job.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium text-foreground">{job.title}</TableCell>
                     <TableCell className="text-muted-foreground">{job.location}</TableCell>
                     <TableCell className="text-center">
@@ -139,7 +139,7 @@ export default function JobRequisitionsPage() {
             </Table>
             </div>
           ) : (
-            <div className="text-center py-10">
+            <div className="text-center py-10 bg-card rounded-lg">
               <Archive className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
               <p className="text-xl text-muted-foreground">No job requisitions found.</p>
               <p className="text-sm text-muted-foreground">

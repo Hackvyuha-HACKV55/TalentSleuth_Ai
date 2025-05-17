@@ -21,7 +21,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-7xl mx-auto"> 
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />
@@ -38,7 +38,7 @@ export default function CompareCandidatesPage() {
           <p className="text-lg text-muted-foreground">Loading candidates...</p>
         </div>
       ) : candidates.length > 0 ? (
-        <div className="border rounded-lg shadow-md overflow-x-auto"> 
+        <div className="border rounded-lg shadow-md overflow-x-auto bg-card"> 
           <Table>
             <TableHeader className="bg-card/50"> 
               <TableRow>
@@ -54,7 +54,7 @@ export default function CompareCandidatesPage() {
             <TableBody>
               {candidates.map((candidate: UnifiedCandidate) => (
                 candidate.id && candidate.name && candidate.email ? (
-                <TableRow key={candidate.id}>
+                <TableRow key={candidate.id} className="hover:bg-muted/30">
                   <TableCell>
                     <Avatar className="h-10 w-10 border">
                       <AvatarImage src={candidate.avatarUrl || `https://placehold.co/60x60.png?text=${getInitials(candidate.name)}`} alt={candidate.name || "Candidate"} data-ai-hint="person professional" />
@@ -90,7 +90,7 @@ export default function CompareCandidatesPage() {
           </Table>
         </div>
       ) : (
-        <div className="text-center py-12 border rounded-lg shadow-sm">
+        <div className="text-center py-12 border rounded-lg shadow-sm bg-card">
           <UsersRound className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
           <p className="text-xl text-muted-foreground">No candidates found.</p>
           <p className="text-sm text-muted-foreground">

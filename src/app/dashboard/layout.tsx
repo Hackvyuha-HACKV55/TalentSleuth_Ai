@@ -56,8 +56,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="sr-only">Toggle Sidebar</span>
           </SidebarTrigger>
         </header>
-        {/* The div below wraps the page content. It ensures padding and flex-1 to grow. */}
-        <div className="w-full flex-1 p-6 sm:p-8 animate-fadeIn"> 
+        {/* This div below wraps the page content. It constrains width and centers. */}
+        <div className="w-full flex-1 max-w-7xl mx-auto px-6 sm:px-8 py-6 sm:py-8 animate-fadeIn"> 
           {children}
         </div>
       </SidebarInset>

@@ -13,9 +13,9 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90", // Olive BG, Light Text
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: // For buttons like "Upload Job Description"
+        outline: // Olive border and text, transparent BG
           "border border-primary bg-transparent text-primary hover:bg-primary/10",
-        secondary: // Could be used for other secondary actions
+        secondary: // Light Grey BG, Dark Olive Text (for secondary actions if needed)
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground", // Accent is primary olive
         link: "text-primary underline-offset-4 hover:underline",
@@ -45,7 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }), "rounded-lg")} 
+        className={cn(buttonVariants({ variant, size, className }), "rounded-lg")} // Apply rounded-lg for consistency
         ref={ref}
         {...props}
       />

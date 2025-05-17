@@ -9,7 +9,7 @@ import { UserCircle, Bell, Palette } from "lucide-react";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-8 w-full max-w-3xl mx-auto">
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="text-muted-foreground">Manage your account and application preferences.</p>
@@ -17,7 +17,7 @@ export default function SettingsPage() {
 
       <div className="grid gap-8 md:grid-cols-1"> 
         {/* Profile Settings */}
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card border">
           <CardHeader>
             <CardTitle className="text-xl text-primary flex items-center"><UserCircle className="mr-2 h-5 w-5" /> Profile Settings</CardTitle>
             <CardDescription>Update your personal information.</CardDescription>
@@ -40,7 +40,7 @@ export default function SettingsPage() {
         <Separator />
 
         {/* Notification Settings */}
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card border">
           <CardHeader>
             <CardTitle className="text-xl text-primary flex items-center"><Bell className="mr-2 h-5 w-5" /> Notification Settings</CardTitle>
             <CardDescription>Manage how you receive notifications.</CardDescription>
@@ -64,7 +64,7 @@ export default function SettingsPage() {
         <Separator />
 
         {/* Appearance Settings - Basic Placeholder */}
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card border">
           <CardHeader>
             <CardTitle className="text-xl text-primary flex items-center"><Palette className="mr-2 h-5 w-5" /> Appearance</CardTitle>
             <CardDescription>Customize the look and feel of the application.</CardDescription>

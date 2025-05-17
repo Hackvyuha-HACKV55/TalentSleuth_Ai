@@ -63,7 +63,7 @@ export default function CreateJobRequisitionPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-3xl mx-auto">
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Briefcase className="mr-3 h-8 w-8 text-primary" />
@@ -74,7 +74,7 @@ export default function CreateJobRequisitionPage() {
         </p>
       </div>
 
-      <Card className="w-full rounded-2xl shadow-xl">
+      <Card className="w-full rounded-2xl shadow-xl bg-card border">
         <CardHeader>
           <CardTitle className="text-2xl text-primary">Job Details</CardTitle>
           <CardDescription>

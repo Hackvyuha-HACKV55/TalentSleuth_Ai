@@ -23,7 +23,7 @@ export default function DashboardOverviewPage() {
     .slice(0, 3);
 
   const StatCard = ({ title, value, icon: Icon, description, isLoading }: { title: string; value: string | number; icon: React.ElementType; description: string; isLoading?: boolean }) => (
-    <Card className="rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card border border-border/50">
+    <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-primary">{title}</CardTitle>
         <Icon className="h-5 w-5 text-muted-foreground" />
@@ -41,8 +41,8 @@ export default function DashboardOverviewPage() {
 
 
   return (
-    // This root div uses w-full, max-w-Xxl, and mx-auto for centering.
-    <div className="space-y-8 w-full max-w-6xl mx-auto">
+    // This root div uses w-full to fill the centered container from DashboardLayout
+    <div className="space-y-8 w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">

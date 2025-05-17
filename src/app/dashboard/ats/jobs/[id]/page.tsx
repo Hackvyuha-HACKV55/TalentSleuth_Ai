@@ -246,7 +246,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-4xl mx-auto">
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -269,7 +269,7 @@ export default function JobRequisitionDetailPage() {
         </div>
       </div>
 
-      <Card className="w-full rounded-2xl shadow-xl">
+      <Card className="w-full rounded-2xl shadow-xl bg-card border">
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -292,7 +292,7 @@ export default function JobRequisitionDetailPage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full rounded-2xl shadow-xl">
+      <Card className="w-full rounded-2xl shadow-xl bg-card border">
         <CardHeader>
             <CardTitle className="text-xl text-primary flex items-center">
                 <Users className="mr-2 h-5 w-5" /> Applicants for this Job
@@ -330,7 +330,7 @@ export default function JobRequisitionDetailPage() {
                     <p className="ml-2 text-muted-foreground">Loading applicants...</p>
                 </div>
             ) : applicants.length > 0 ? (
-                 <div className="border rounded-lg overflow-hidden">
+                 <div className="border rounded-lg overflow-hidden bg-card">
                     <Table>
                         <TableHeader className="bg-card/50"> 
                         <TableRow>
@@ -342,7 +342,7 @@ export default function JobRequisitionDetailPage() {
                         </TableHeader>
                         <TableBody>
                         {applicants.map((app) => (
-                            <TableRow key={app.id}>
+                            <TableRow key={app.id} className="hover:bg-muted/30">
                             <TableCell className="font-medium text-foreground">
                                 <Link href={`/dashboard/candidates/${app.candidateId}`} className="hover:underline">
                                     {app.candidateName}

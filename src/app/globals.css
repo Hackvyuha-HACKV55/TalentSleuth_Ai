@@ -5,22 +5,22 @@
 
 @layer base {
   :root {
-    --background: 70 20% 96%; /* Light Off-White */
-    --foreground: 80 10% 25%; /* Dark Olive/Grey Text */
+    --background: 60 30% 97%; /* Light beige/off-white page background */
+    --foreground: 80 10% 25%; /* Dark olive/grey text */
 
-    --card: 0 0% 100%; /* White Cards */
-    --card-foreground: 80 10% 25%;
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 80 10% 25%; /* Dark olive/grey text on cards */
 
-    --popover: 0 0% 100%; /* White Popovers */
+    --popover: 0 0% 100%; /* White popovers */
     --popover-foreground: 80 10% 25%;
 
     --primary: 80 30% 35%; /* Olive Green Accent */
     --primary-foreground: 70 40% 98%; /* Light Cream for text on primary */
 
-    --secondary: 70 15% 90%; /* Lighter grey for secondary elements like badges */
+    --secondary: 70 20% 93%; /* Lighter grey for secondary elements like badges */
     --secondary-foreground: 80 25% 30%; /* Darker Olive for text on secondary */
 
-    --muted: 70 15% 90%; /* Muted background */
+    --muted: 70 15% 90%; /* Muted background parts (e.g., non-active sidebar group labels) */
     --muted-foreground: 80 7% 55%; /* Muted Olive/Grey Text */
 
     --accent: 80 30% 35%; /* Same as Primary for general accent */
@@ -29,8 +29,8 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 70 15% 88%; /* Light grey border */
-    --input: 70 15% 88%; /* Light grey input border */
+    --border: 70 15% 88%; /* Light grey/off-white border */
+    --input: 0 0% 100%; /* White input background */
     --ring: 80 30% 45%; /* Brighter Olive for focus ring */
 
     --radius: 0.75rem; /* Standard rounding */
@@ -41,24 +41,22 @@
     --chart-4: 60 15% 70%;
     --chart-5: 0 0% 85%;
 
-    /* Sidebar Specific Theme - can be same as cards or slightly different */
-    --sidebar-background: 0 0% 100%; /* White Sidebar */
+    /* Sidebar Specific Theme */
+    --sidebar-background: 60 25% 94%; /* Sidebar background - Slightly darker off-white */
     --sidebar-foreground: 80 10% 25%; /* Dark Olive/Grey Text */
     
-    /* Active sidebar item based on previous olive theme */
-    --sidebar-primary: 80 30% 35%; /* Olive for active item background */
-    --sidebar-primary-foreground: 70 40% 98%; /* Light text for active item */
+    --sidebar-primary: 50 35% 65%; /* Gold/Khaki for active item background */
+    --sidebar-primary-foreground: 80 10% 25%; /* Dark Olive/Grey for active item text */
     
-    /* Hover/accent for sidebar items */
-    --sidebar-accent: 70 20% 93%; /* Very light grey for hover */
-    --sidebar-accent-foreground: 80 30% 35%; /* Olive text on hover */
+    --sidebar-accent: 80 30% 90%; /* Very light olive tint for hover background */
+    --sidebar-accent-foreground: 80 30% 35%; /* Primary olive for hover text */
     
-    --sidebar-border: 70 15% 88%;
+    --sidebar-border: 70 15% 85%;
     --sidebar-ring: 80 30% 45%;
   }
 
   .dark {
-    /* Basic dark theme, can be expanded */
+    /* Basic dark theme, can be expanded. Keeping it simple for now. */
     --background: 220 15% 10%;
     --foreground: 0 0% 90%;
     --card: 220 15% 15%;
@@ -76,7 +74,7 @@
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 15% 30%;
-    --input: 220 15% 30%;
+    --input: 220 15% 25%;
     --ring: 80 30% 55%;
     --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 0 0% 90%;
@@ -103,7 +101,8 @@
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out forwards;
   }
-  .rounded-2xl { /* Custom larger rounding */
-    border-radius: calc(var(--radius) * 1.5); /* e.g., 1.125rem if radius is 0.75rem */
+  /* Ensure cards have a more pronounced rounded look if desired */
+  .rounded-2xl { 
+    border-radius: calc(var(--radius) * 1.75); /* Larger rounding for cards etc. */
   }
 }

@@ -76,7 +76,7 @@ export default function InterviewPrepPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-3xl mx-auto">
+    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <HelpCircle className="mr-3 h-8 w-8 text-primary" />
@@ -87,7 +87,7 @@ export default function InterviewPrepPage() {
         </p>
       </div>
 
-      <Card className="w-full rounded-2xl shadow-xl">
+      <Card className="w-full rounded-2xl shadow-xl bg-card border">
         <CardHeader>
           <CardTitle className="text-2xl text-primary">Input Details</CardTitle>
           <CardDescription>
@@ -173,7 +173,7 @@ export default function InterviewPrepPage() {
       )}
 
       {generatedResult && (
-        <Card className="rounded-2xl shadow-xl">
+        <Card className="rounded-2xl shadow-xl bg-card border">
           <CardHeader>
             <CardTitle className="text-2xl text-primary">Generated Interview Questions</CardTitle>
             <CardDescription>For job title: <span className="font-semibold">{jobTitle}</span>, skills: <span className="font-semibold">{candidateSkills}</span></CardDescription>
