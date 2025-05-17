@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  Columns, // Using Columns for Compare
+  Columns, 
+  Archive, // Icon for ATS
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -39,6 +40,10 @@ const toolsNavItems = [
   { href: "/dashboard/upload-resume", label: "Upload Resume", icon: FileUp },
   { href: "/dashboard/upload-jd", label: "Upload JD & Match", icon: ClipboardList },
   { href: "/dashboard/interview-prep", label: "Interview Prep", icon: HelpCircle },
+];
+
+const atsNavItems = [
+  { href: "/dashboard/ats/jobs", label: "Job Requisitions", icon: Archive },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {
@@ -105,6 +110,19 @@ export function DashboardSidebarNav() {
         <SidebarGroupContent>
            <SidebarMenu>
             {toolsNavItems.map((item) => (
+              <NavLink key={item.href} {...item} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarSeparator />
+      
+      <SidebarGroup>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">ATS</SidebarGroupLabel>
+        <SidebarGroupContent>
+           <SidebarMenu>
+            {atsNavItems.map((item) => (
               <NavLink key={item.href} {...item} />
             ))}
           </SidebarMenu>
