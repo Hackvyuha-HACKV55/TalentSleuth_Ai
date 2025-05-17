@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy } from "firebase/firestore";
 import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -65,10 +65,10 @@ export default function JobRequisitionDetailPage() {
             } else if (data.createdAt instanceof Date) {
                 createdAtDate = data.createdAt;
             }
-            setJob({ 
-                id: jobDocSnap.id, 
+            setJob({
+                id: jobDocSnap.id,
                 ...data,
-                createdAt: createdAtDate 
+                createdAt: createdAtDate
             });
           } else {
             toast({
@@ -147,7 +147,7 @@ export default function JobRequisitionDetailPage() {
             candidateId: selectedCandidate.id,
             candidateName: selectedCandidate.name,
             applicationDate: serverTimestamp(),
-            status: "Applied" 
+            status: "Applied"
         });
         // Optimistically add or re-fetch applicants
         const newApplicantData: JobApplication = {
@@ -160,7 +160,7 @@ export default function JobRequisitionDetailPage() {
             status: "Applied"
         };
         setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]); // Avoid duplicates if re-fetched quickly
-        
+
         // Re-fetch applicants to get accurate data
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
@@ -229,7 +229,7 @@ export default function JobRequisitionDetailPage() {
       </div>
     );
   }
-  
+
   const DetailItem = ({ label, value, isHtml = false }: { label: string; value?: string | React.ReactNode; isHtml?: boolean }) => {
     if (!value && typeof value !== 'number') return null; // Allow 0 to be displayed
     return (
@@ -373,6 +373,3 @@ export default function JobRequisitionDetailPage() {
     </div>
   );
 }
-
-
-    
