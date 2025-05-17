@@ -7,3 +7,4 @@ import '@/ai/flows/profile-discovery.ts';
 import '@/ai/flows/role-matching.ts';
 import '@/ai/flows/resume-parsing.ts';
 import '@/ai/flows/interview-question-generator.ts';
+import '@/ai/flows/sentiment-analysis.ts';

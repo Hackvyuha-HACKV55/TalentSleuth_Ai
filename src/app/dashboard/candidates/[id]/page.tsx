@@ -4,11 +4,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
+import { analyzeSentiment, type SentimentAnalysisInput, type SentimentAnalysisOutput } from "@/ai/flows/sentiment-analysis";
 import { use, useState, useEffect } from "react"; 
-import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText } from "lucide-react";
+import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText, MessageCircleMore, ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCandidateContext } from "@/context/candidate-context"; 
 import type { UnifiedCandidate } from "@/lib/mock-data";
@@ -27,6 +30,11 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
   const [isLoadingRedFlags, setIsLoadingRedFlags] = useState(false);
   const [hasProfileLinks, setHasProfileLinks] = useState(false);
+  
+  const [endorsementText, setEndorsementText] = useState("");
+  const [sentimentResult, setSentimentResult] = useState<SentimentAnalysisOutput | null>(null);
+  const [isLoadingSentiment, setIsLoadingSentiment] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,8 +64,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     }
     if (!hasProfileLinks) {
         toast({ title: "No Profile Links Found", description: "Resume content does not seem to contain links to LinkedIn, GitHub, or Naukri. Discovery may be limited.", variant: "default" });
-        // Proceed with discovery anyway, but the button is disabled if no links are found.
-        // If we decide to allow it even without links, remove this specific check and rely on the button's disabled state.
     }
     setIsLoadingDiscovery(true);
     try {
@@ -90,6 +96,24 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       setIsLoadingRedFlags(false);
     }
   };
+
+  const runSentimentAnalysis = async () => {
+    if (!endorsementText.trim()) {
+      toast({ title: "Empty Text", description: "Please enter some text to analyze.", variant: "destructive" });
+      return;
+    }
+    setIsLoadingSentiment(true);
+    setSentimentResult(null);
+    try {
+      const result = await analyzeSentiment({ textToAnalyze: endorsementText });
+      setSentimentResult(result);
+      toast({ title: "Sentiment Analysis Complete" });
+    } catch (error) {
+      toast({ title: "Sentiment Analysis Failed", description: String(error), variant: "destructive" });
+    } finally {
+      setIsLoadingSentiment(false);
+    }
+  };
   
   const ResumeDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
     if (!value && value !== "") return null; 
@@ -102,6 +126,13 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         </div>
       </div>
     );
+  };
+
+  const SentimentIcon = ({ sentiment }: { sentiment?: "Positive" | "Negative" | "Neutral" }) => {
+    if (sentiment === "Positive") return <ThumbsUp className="mr-2 h-5 w-5 text-green-500" />;
+    if (sentiment === "Negative") return <ThumbsDown className="mr-2 h-5 w-5 text-red-500" />;
+    if (sentiment === "Neutral") return <Meh className="mr-2 h-5 w-5 text-yellow-500" />;
+    return null;
   };
 
   if (!candidate) {
@@ -209,6 +240,59 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 </div>
               )}
               {!isLoadingRedFlags && !redFlagResult && <p className="text-sm text-muted-foreground">Click &quot;Detect Flags&quot; to analyze resume against profile data for discrepancies, job switching patterns, and outdated info.</p>}
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          <Card className="rounded-lg shadow-md">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl text-primary flex items-center"><MessageCircleMore className="mr-2 h-5 w-5" /> Sentiment Analysis</CardTitle>
+              </div>
+              <CardDescription>Analyze the sentiment of an endorsement, review, or any text related to the candidate.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="endorsement-text">Text to Analyze</Label>
+                <Textarea
+                  id="endorsement-text"
+                  placeholder="Paste endorsement, review, or other text here..."
+                  value={endorsementText}
+                  onChange={(e) => setEndorsementText(e.target.value)}
+                  rows={4}
+                  className="mt-1 rounded-lg"
+                />
+              </div>
+              <Button onClick={runSentimentAnalysis} disabled={isLoadingSentiment || !endorsementText.trim()} size="sm" variant="outline" className="rounded-lg">
+                {isLoadingSentiment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {isLoadingSentiment ? "Analyzing..." : "Analyze Sentiment"}
+              </Button>
+              {isLoadingSentiment && <p className="text-sm text-muted-foreground">Analyzing sentiment...</p>}
+              {sentimentResult && (
+                <div className={`p-4 rounded-md border ${
+                  sentimentResult.sentiment === "Positive" ? "bg-green-500/10 border-green-500" :
+                  sentimentResult.sentiment === "Negative" ? "bg-destructive/10 border-destructive" :
+                  "bg-yellow-500/10 border-yellow-500"
+                }`}>
+                  <div className="flex items-center mb-2">
+                    <SentimentIcon sentiment={sentimentResult.sentiment} />
+                    <h4 className={`font-semibold ${
+                      sentimentResult.sentiment === "Positive" ? "text-green-700" :
+                      sentimentResult.sentiment === "Negative" ? "text-destructive" :
+                      "text-yellow-700"
+                    }`}>
+                      Sentiment: {sentimentResult.sentiment}
+                    </h4>
+                  </div>
+                  {sentimentResult.justification && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      <span className="font-medium text-foreground">Justification:</span> {sentimentResult.justification}
+                    </p>
+                  )}
+                </div>
+              )}
+              {!isLoadingSentiment && !sentimentResult && <p className="text-sm text-muted-foreground">Enter text above and click "Analyze Sentiment".</p>}
             </CardContent>
           </Card>
 
