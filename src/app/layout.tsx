@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Changed from Geist
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { CandidateProvider } from "@/context/candidate-context";
@@ -9,12 +9,10 @@ import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ // Changed from geistSans
-  variable: "--font-inter", // Changed from --font-geist-sans
+const inter = Inter({ 
+  variable: "--font-inter", 
   subsets: ["latin"],
 });
-
-// Removed Geist Mono as Inter will be the primary font
 
 export const metadata: Metadata = {
   title: "TalentSleuth AI - Your Virtual Talent Analyst",
@@ -31,8 +29,7 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          inter.variable // Changed from geistSans.variable
-          // Removed geistMono.variable
+          inter.variable
         )}
       >
         <AuthProvider>
