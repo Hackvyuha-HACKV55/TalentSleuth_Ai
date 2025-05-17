@@ -5,15 +5,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
-import type { DocumentData, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc, setDoc, orderBy, Timestamp } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, CalendarDays, DollarSign, Loader2, MapPin, Send, CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/context/candidate-context"; // Use existing type
+import type { UnifiedCandidate } from "@/context/candidate-context";
 
-interface JobRequisition extends DocumentData {
+interface JobRequisition {
   id: string;
   title: string;
   description: string;
@@ -37,7 +36,7 @@ export default function StudentJobsPage() {
         const jobsCollectionRef = collection(db, "jobRequisitions");
         const q = query(jobsCollectionRef, where("status", "==", "Open"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
-        const fetchedJobs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobRequisition));
+        const fetchedJobs = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobRequisition));
         setJobs(fetchedJobs);
       } catch (error) {
         console.error("Error fetching open job requisitions:", error);
@@ -67,11 +66,10 @@ export default function StudentJobsPage() {
     setApplyingJobId(job.id);
 
     try {
-      // 1. Check if candidate already applied for this job
       const applicationsQuery = query(
         collection(db, "jobApplications"),
         where("jobId", "==", job.id),
-        where("candidateEmail", "==", user.email) // Assuming candidateEmail is stored
+        where("candidateEmail", "==", user.email)
       );
       const existingApplicationsSnap = await getDocs(applicationsQuery);
       if (!existingApplicationsSnap.empty) {
@@ -80,24 +78,23 @@ export default function StudentJobsPage() {
           description: "You have already applied for this position.",
           variant: "default",
         });
+        setApplyingJobId(null); 
         return;
       }
 
-      // 2. Find or create candidate profile
       let candidateId = "";
-      let candidateName = user.displayName || user.email?.split('@')[0] || "Applicant"; // Fallback name
+      let candidateName = user.displayName || user.email?.split('@')[0] || "Applicant";
 
       const candidatesQuery = query(collection(db, "candidates"), where("email", "==", user.email));
       const candidateSnap = await getDocs(candidatesQuery);
 
       if (!candidateSnap.empty) {
-        // Candidate exists
         candidateId = candidateSnap.docs[0].id;
-        candidateName = candidateSnap.docs[0].data().name || candidateName; // Use existing name if available
+        candidateName = candidateSnap.docs[0].data().name || candidateName;
       } else {
-        // Create new candidate profile
         const newCandidateRef = doc(collection(db, "candidates"));
         candidateId = newCandidateRef.id;
+        const initials = candidateName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'AP';
         const newCandidateData: Partial<UnifiedCandidate> = {
           id: candidateId,
           name: candidateName,
@@ -108,7 +105,7 @@ export default function StudentJobsPage() {
           skills: "Not Specified",
           certifications: undefined,
           role: "Applicant",
-          avatarUrl: `https://placehold.co/80x80.png?text=${candidateName.substring(0,2).toUpperCase()}`,
+          avatarUrl: `https://placehold.co/80x80.png?text=${initials}`,
           resumeTextContent: "Profile auto-created via student job application.",
           topSkill: "Not Specified",
           fitScore: undefined,
@@ -120,13 +117,12 @@ export default function StudentJobsPage() {
         });
       }
 
-      // 3. Create job application
       await addDoc(collection(db, "jobApplications"), {
         jobId: job.id,
         jobTitle: job.title,
         candidateId: candidateId,
-        candidateName: candidateName, // Use the determined candidate name
-        candidateEmail: user.email, // Store email for easier querying
+        candidateName: candidateName,
+        candidateEmail: user.email,
         applicationDate: serverTimestamp(),
         status: "Applied",
         source: "Student Portal",
@@ -219,3 +215,6 @@ export default function StudentJobsPage() {
           ))}
         </div>
       )}
+    </div>
+  );
+}

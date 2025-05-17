@@ -10,4 +10,9 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
       {/* <Navbar /> */}
       <main className="flex-1 animate-fadeIn pt-16"> {/* Add pt-16 if using sticky navbar from root */}
         {children}
-      </
+      </main>
+      {/* Footer can be included here if students need a different one, or reuse existing */}
+      {/* <Footer /> */}
+    </div>
+  );
+}
