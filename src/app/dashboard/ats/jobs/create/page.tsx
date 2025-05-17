@@ -63,7 +63,7 @@ export default function CreateJobRequisitionPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-3xl">
+    <div className="space-y-8 w-full max-w-3xl mx-auto">
        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Briefcase className="mr-3 h-8 w-8 text-primary" />

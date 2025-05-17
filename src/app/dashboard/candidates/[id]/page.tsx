@@ -50,13 +50,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     }
   }, [candidate?.resumeTextContent]);
 
-  const getInitials = (name?: string | null) => {
-    if (!name) return "??";
-    const names = name.split(' ');
-    if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
-    return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
-  }
-
   const runProfileDiscovery = async () => {
     if (!candidate?.name || !candidate?.email) {
       toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
@@ -135,6 +128,13 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     if (sentiment === "Neutral") return <Meh className="mr-2 h-5 w-5 text-yellow-500" />;
     return null;
   };
+  
+  const getInitials = (name?: string | null) => {
+    if (!name) return "??";
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
+    return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
+  }
 
   if (!candidate) {
     return (
@@ -152,7 +152,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full max-w-5xl">
+    <div className="space-y-8 w-full max-w-5xl mx-auto">
       <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
         <CardHeader className="bg-card/50 p-6"> 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">

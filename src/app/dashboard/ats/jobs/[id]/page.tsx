@@ -161,6 +161,7 @@ export default function JobRequisitionDetailPage() {
         };
         setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]);
 
+        // Re-fetch to ensure data consistency after adding
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
@@ -245,7 +246,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-4xl">
+    <div className="space-y-8 w-full max-w-4xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">

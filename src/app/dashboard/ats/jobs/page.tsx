@@ -72,7 +72,7 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-5xl">
+    <div className="space-y-8 w-full max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
