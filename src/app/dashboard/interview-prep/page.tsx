@@ -76,7 +76,7 @@ export default function InterviewPrepPage() {
   };
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8 w-full py-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <HelpCircle className="mr-3 h-8 w-8 text-primary" />

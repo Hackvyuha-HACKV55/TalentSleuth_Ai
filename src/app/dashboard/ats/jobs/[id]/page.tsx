@@ -195,7 +195,7 @@ export default function JobRequisitionDetailPage() {
 
   if (loadingJob) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-6">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-xl text-muted-foreground">Loading job details...</p>
       </div>
@@ -204,7 +204,7 @@ export default function JobRequisitionDetailPage() {
 
   if (!job) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] text-center">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] text-center py-6">
         <PackageOpen className="h-16 w-16 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-semibold text-foreground mb-2">Job Requisition Not Found</h2>
         <p className="text-muted-foreground mb-6">
@@ -235,7 +235,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8 w-full py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">

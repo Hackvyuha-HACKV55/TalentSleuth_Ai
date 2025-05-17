@@ -24,7 +24,7 @@ export default function CandidatesListPage() {
   const uniqueSkills = ["all", ...new Set(candidates.map(c => c.topSkill).filter(Boolean) as string[])];
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8 w-full py-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Candidates</h1>
         <p className="text-muted-foreground">Browse and manage your talent pool from the central database.</p>

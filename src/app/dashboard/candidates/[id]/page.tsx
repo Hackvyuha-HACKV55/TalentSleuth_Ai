@@ -138,7 +138,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
   if (!candidate) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-6">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-xl text-muted-foreground">Loading candidate details...</p>
         <p className="text-sm text-muted-foreground">If this persists, the candidate may not exist or there might be an issue.</p>
@@ -152,7 +152,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8 w-full py-6">
       <Card className="rounded-lg shadow-lg overflow-hidden bg-card border hover:shadow-2xl transition-shadow duration-300">
         <CardHeader className="bg-card/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
