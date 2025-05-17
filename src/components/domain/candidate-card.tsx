@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Mail, Star, ArrowRight, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/lib/mock-data"; 
+import type { UnifiedCandidate } from "@/context/candidate-context"; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +44,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     if (candidate.id) {
       setIsDeleting(true);
       await deleteCandidate(candidate.id);
-      setIsDeleting(false); 
+      // No need to setIsDeleting(false) here if the component unmounts or re-renders without the card
     }
   };
 
@@ -116,4 +116,3 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     </Card>
   );
 }
-```
