@@ -1,4 +1,4 @@
-
+pu
 # TalentSleuth AI - Your Virtual Talent Analyst
 
 TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition. Candidate data is persistently stored using Firebase Firestore.

@@ -1,23 +1,20 @@
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google"; // Changed from Geist
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
-import { CandidateProvider } from "@/context/candidate-context"; // Import CandidateProvider
+import { CandidateProvider } from "@/context/candidate-context";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({ // Changed from geistSans
+  variable: "--font-inter", // Changed from --font-geist-sans
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Removed Geist Mono as Inter will be the primary font
 
 export const metadata: Metadata = {
   title: "TalentSleuth AI - Your Virtual Talent Analyst",
@@ -34,15 +31,15 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          geistSans.variable,
-          geistMono.variable
+          inter.variable // Changed from geistSans.variable
+          // Removed geistMono.variable
         )}
       >
         <AuthProvider>
-          <CandidateProvider> {/* Wrap with CandidateProvider */}
+          <CandidateProvider>
             <div className="relative flex min-h-screen flex-col">
               <Navbar />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 animate-fadeIn">{children}</main>
               <Footer />
             </div>
             <Toaster />
