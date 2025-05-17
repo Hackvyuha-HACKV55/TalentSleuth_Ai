@@ -19,15 +19,34 @@ TalentSleuth AI is an intelligent platform designed to streamline the hiring pro
 *   **Job Requisition Management (Basic ATS):** Create and manage job postings, stored in Firestore.
 
 ## Planned ATS Features (Future Development)
-The application aims to expand its ATS capabilities by integrating with Google Workspace APIs:
-*   **Automated Resume Intake:** Via Gmail API & Google Drive API.
-*   **Candidate Workflow & Status Tracking:** Detailed application stage management.
-*   **Interview Scheduling:** Google Calendar & Google Meet API integration.
-*   **Communication Logs:** Gmail API for tracking email threads.
-*   **Document & Note Management:** Enhanced file storage in Google Drive.
-*   **Task Reminders & Follow-ups:** Google Calendar integration.
-*   **Team Collaboration Features.**
-*   **Analytics Dashboard.**
+
+The application aims to expand its ATS capabilities by integrating with Google Workspace APIs and other features:
+
+1.  **Job Requisition Management (Enhanced)**
+    *   Create, edit, and manage job postings (title, description, location, salary, status).
+    *   Store job descriptions in Firestore and optionally sync/share via Google Drive as Docs or PDFs.
+2.  **Automated Resume Intake (via Gmail & Drive)**
+    *   **Gmail API Integration**: Monitor a recruitment inbox for new applications, auto-fetch attachments.
+    *   **Drive API Integration**: Automatically store and organize resume files.
+3.  **Candidate Application Tracking**
+    *   Track candidate applications per job requisition.
+    *   Link candidates to jobs, store application metadata (date, source, status) in Firestore.
+4.  **Interview Scheduling & Virtual Meetings (Google Calendar + Meet)**
+    *   **Calendar API**: Schedule interviews, check availability.
+    *   **Meet API**: Auto-generate Meet links.
+5.  **Email Communication Logging (Gmail API)**
+    *   Track email threads with candidates.
+    *   Optional: Display recent communications in candidate profiles.
+6.  **Document & Note Management (Drive API)**
+    *   Allow recruiters to upload/write notes and documents (portfolios, assessments).
+    *   Store metadata in Firestore and files in Drive.
+7.  **Task Reminders & Follow-ups (Google Calendar API)**
+    *   Set reminders for interview prep, follow-ups, application reviews.
+8.  **Team Collaboration**
+    *   Shared access to candidate dossiers and notes.
+    *   Assign reviewers/interviewers.
+9.  **Analytics & Reporting (Optional)**
+    *   Visualize pipeline metrics (applicants per job, time in stage, offer ratios).
 
 ## Tech Stack
 
@@ -82,6 +101,7 @@ talentsleuth-ai/
 │   │   │   ├── ats/
 │   │   │   │   └── jobs/
 │   │   │   │       ├── create/page.tsx  # Create new job requisition
+│   │   │   │       ├── [id]/page.tsx    # View/Edit job requisition (placeholder)
 │   │   │   │       └── page.tsx         # List job requisitions
 │   │   │   ├── candidates/
 │   │   │   │   ├── [id]/page.tsx # Candidate detail page
@@ -119,14 +139,15 @@ talentsleuth-ai/
 Before you begin, ensure you have the following installed:
 -   **Node.js:** Version 18.x or 20.x is recommended. You can download it from [nodejs.org](https://nodejs.org/).
 -   **npm** (comes with Node.js) or **yarn** (optional, install via `npm install -g yarn`).
--   **Google Gemini API Key:** You need an API key from Google AI Studio to use the AI features. Get one [here](https://aistudio.google.com/app/apikey).
+-   **Google Gemini API Key:** You need an API key from Google AI Studio to use the AI features. Get one [here](https://aistudio.google.com/app/apikey). Store this as `GOOGLE_API_KEY` in your `.env` file.
 -   **Firebase Project:**
     *   Create a Firebase project at [firebase.google.com](https://firebase.google.com/).
     *   Enable **Authentication** (Email/Password sign-in method).
     *   Enable **Firestore Database** in your Firebase project. Start in test mode for easy setup (but configure security rules for production).
--   **(Optional for future ATS features) Google Cloud Project & API Keys:**
-    *   For features like Google Drive, Gmail, Calendar, and Meet integration, you'll need a Google Cloud Platform project with these APIs enabled.
-    *   You'll also need to generate API keys or OAuth 2.0 credentials for these services. **Securely manage these credentials.**
+-   **(Optional for planned ATS features) Google Cloud Project & API Keys:**
+    *   For planned features like Google Drive, Gmail, Calendar, and Meet integration, you'll need a Google Cloud Platform project with these APIs enabled.
+    *   You'll also need to generate API keys or OAuth 2.0 credentials for these services. Store these in your `.env` file (e.g., `GOOGLE_DRIVE_API_KEY`, `GOOGLE_GMAIL_API_KEY`, etc.).
+    *   **Securely manage these credentials.**
 
 ## Setup and Running Locally
 
@@ -162,7 +183,7 @@ Follow these steps to get the project running on your local machine:
         ```env
         GOOGLE_API_KEY=your_actual_gemini_api_key_here
         ```
-    *   **(Optional, for planned ATS features)** If you have API keys for Google Drive, Gmail, Calendar, or Meet, add them as well (placeholders are provided in the file).
+    *   Add the API keys for **Google Workspace APIs** if you have them (needed for planned ATS features):
         ```env
         GOOGLE_DRIVE_API_KEY=your_drive_api_key
         GOOGLE_MEET_API_KEY=your_meet_api_key
@@ -237,3 +258,6 @@ In the `package.json` file, you'll find several scripts for managing the project
 *   **File Handling Robustness:** Improve handling and user feedback for various resume file types, sizes, and potential parsing issues.
 *   **Security:** Ensure API keys are managed securely and not exposed on the client-side if possible for services that require server-to-server calls.
 *   **Scalability:** For larger applications, consider Firestore data structuring, indexing, and query optimization.
+
+```
+    
