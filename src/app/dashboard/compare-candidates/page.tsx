@@ -21,7 +21,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto"> 
+    <div className="space-y-8 w-full max-w-6xl"> 
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />

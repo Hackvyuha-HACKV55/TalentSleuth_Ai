@@ -25,7 +25,7 @@ export default function CandidatesListPage() {
 
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 w-full max-w-7xl">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Candidates</h1>
         <p className="text-muted-foreground">Browse and manage your talent pool from the central database.</p>

@@ -58,7 +58,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </SidebarTrigger>
           {/* Add breadcrumbs or page title here if needed */}
         </header>
-        <div className="p-6 sm:p-8 animate-fadeIn"> {/* Increased padding and added fadeIn */}
+        {/* This div now centers its direct child (the page content) */}
+        <div className="w-full flex flex-1 flex-col items-center p-6 sm:p-8 animate-fadeIn"> 
           {children}
         </div>
       </SidebarInset>

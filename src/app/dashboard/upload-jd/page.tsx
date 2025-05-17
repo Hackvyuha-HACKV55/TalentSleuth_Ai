@@ -3,7 +3,7 @@ import { JobDescriptionUploader } from "@/components/domain/job-description-uplo
 
 export default function UploadJobDescriptionPage() {
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-8 w-full max-w-3xl">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Upload Job Description & Match Role</h1>
         <p className="text-muted-foreground">
