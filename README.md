@@ -24,31 +24,40 @@ TalentSleuth AI is an intelligent platform designed to streamline the hiring pro
 
 The application aims to expand its ATS capabilities by integrating with Google Workspace APIs and other features:
 
-1.  **Job Requisition Management (Enhanced)**
+### 1. **Job Requisition Management (Enhanced)**
     *   Edit existing job postings.
     *   Optionally sync/share via Google Drive as Docs or PDFs.
-2.  **Automated Resume Intake (via Gmail & Drive)**
+
+### 2. **Automated Resume Intake (via Gmail & Drive)**
     *   **Gmail API Integration**: Monitor a recruitment inbox for new applications, auto-fetch attachments.
     *   **Drive API Integration**: Automatically store and organize resume files.
-3.  **Candidate Application Tracking (Enhanced)**
+
+### 3. **Candidate Application Tracking (Enhanced)**
     *   Track candidate applications per job requisition with more detailed status updates (Screening, Interviewing, Offered, Hired, Rejected).
     *   Link candidates to jobs, store application metadata (date, source, status) in Firestore.
-4.  **Interview Scheduling & Virtual Meetings (Google Calendar + Meet)**
+
+### 4. **Interview Scheduling & Virtual Meetings (Google Calendar + Meet)**
     *   **Calendar API**: Schedule interviews, check availability.
     *   **Meet API**: Auto-generate Meet links.
-5.  **Email Communication Logging (Gmail API)**
+
+### 5. **Email Communication Logging (Gmail API)**
     *   Track email threads with candidates.
     *   Optional: Display recent communications in candidate profiles.
-6.  **Document & Note Management (Drive API)**
+
+### 6. **Document & Note Management (Drive API)**
     *   Allow recruiters to upload/write notes and documents (portfolios, assessments).
     *   Store metadata in Firestore and files in Drive.
-7.  **Task Reminders & Follow-ups (Google Calendar API)**
+
+### 7. **Task Reminders & Follow-ups (Google Calendar API)**
     *   Set reminders for interview prep, follow-ups, application reviews.
-8.  **Team Collaboration**
+
+### 8. **Team Collaboration**
     *   Shared access to candidate dossiers and notes.
     *   Assign reviewers/interviewers.
-9.  **Analytics & Reporting (Optional)**
+
+### 9. **Analytics & Reporting (Optional)**
     *   Visualize pipeline metrics (applicants per job, time in stage, offer ratios).
+
 
 ## Tech Stack
 
@@ -133,7 +142,7 @@ talentsleuth-ai/
 │   │   └── use-toast.ts
 │   ├── lib/                # Utility functions and configurations
 │   │   ├── firebase.ts     # Firebase initialization (Auth, Firestore)
-│   │   ├── mock-data.ts    # Initial mock candidate data (used if Firestore is empty/for reference before persistence)
+│   │   ├── mock-data.ts    # (Reference only, Firestore is primary data source)
 │   │   └── utils.ts        # General utility functions (e.g., cn for Tailwind)
 ├── tailwind.config.ts    # Tailwind CSS configuration
 └── tsconfig.json         # TypeScript configuration
@@ -191,16 +200,18 @@ Follow these steps to get the project running on your local machine:
     *   Add the API keys for **Google Workspace APIs** if you have them (needed for planned ATS features):
         ```env
         # Example keys - replace with your actual, secured keys for production
-        GOOGLE_DRIVE_API_KEY=your_drive_api_key 
-        GOOGLE_MEET_API_KEY=your_meet_api_key
-        GOOGLE_CALENDAR_API_KEY=your_calendar_api_key
-        GOOGLE_GMAIL_API_KEY=your_gmail_api_key
+        # These are currently placeholders and will be used for future ATS features.
+        GOOGLE_DRIVE_API_KEY=your_drive_api_key_if_you_have_one
+        GOOGLE_MEET_API_KEY=your_meet_api_key_if_you_have_one
+        GOOGLE_CALENDAR_API_KEY=your_calendar_api_key_if_you_have_one
+        GOOGLE_GMAIL_API_KEY=your_gmail_api_key_if_you_have_one
         ```
         Replace placeholders with your actual keys. **Remember the security implications of handling these keys.**
 
 6.  **Firebase Security Rules (Important for Firestore):**
     *   Go to your Firebase Console -> Firestore Database -> Rules.
-    *   For initial development, you can use rules that allow authenticated users to read/write. **Example (use with caution, refine for production):**
+    *   **For the Student Job Portal to work correctly (allowing anyone to view open jobs), you need to adjust the rules for `jobRequisitions`.**
+    *   **Example (use with caution, refine for production):**
         ```
         rules_version = '2';
         service cloud.firestore {
@@ -213,13 +224,15 @@ Follow these steps to get the project running on your local machine:
                 allow read, write: if request.auth != null; 
             }
             match /jobRequisitions/{jobId} {
-                allow read, write: if request.auth != null;
+                // Public can read, only authenticated (recruiters) can create/update/delete
+                allow read: if true; 
+                allow create, update, delete: if request.auth != null;
             }
             match /jobApplications/{applicationId} {
-                // Allow authenticated users to create applications
+                // Allow authenticated users to create applications for themselves
                 // Allow read if user is associated with the job (e.g., recruiter) or is the applicant
-                allow create: if request.auth != null;
-                allow read: if request.auth != null; // Simplistic, refine based on roles
+                allow create: if request.auth != null && request.resource.data.candidateEmail == request.auth.token.email;
+                allow read: if request.auth != null; // Simplistic, refine based on roles (e.g., recruiter or applicant)
                 // Add update/delete rules as needed, e.g., only recruiter can update status
             }
           }
@@ -265,7 +278,7 @@ In the `package.json` file, you'll find several scripts for managing the project
 
 ## Further Development & Considerations
 
-*   **Full ATS Feature Implementation:** Gradually build out the remaining ATS features, including Google Workspace API integrations (OAuth 2.0 setup will be necessary for user-specific data access).
+*   **Full ATS Feature Implementation:** Gradually build out the remaining ATS features, including Google Workspace API integrations (OAuth 2.0 setup will be necessary for user-specific data access for Gmail, Calendar, Drive).
 *   **Robust Firestore Security Rules:** This is paramount for any production application. Define rules based on user roles (recruiter vs. student/applicant).
 *   **Error Handling and UI Polish:** Enhance error handling for AI flows, API calls, and Firestore operations.
 *   **File Handling Robustness:** Improve handling and user feedback for various resume file types, sizes, and potential parsing issues.
@@ -275,27 +288,11 @@ In the `package.json` file, you'll find several scripts for managing the project
 *   **Student Profile Management:** Allow students to update their auto-created profiles, upload resumes, etc.
 
 ```
+This is the content for the README.md file.
+I've updated the "Firebase Security Rules" section with a more appropriate example for `jobRequisitions` to allow public reads, which is crucial for the student job portal. This should help you resolve the error you're seeing.
+Please make sure to:
+1.  **Apply these security rule changes in your Firebase project's Firestore console.**
+2.  **Ensure your Firebase project has Firestore enabled and correctly configured in `src/lib/firebase.ts`.**
+3.  **Check your browser's developer console for any more specific error messages from Firestore if the issue persists.** Sometimes Firestore provides a direct link to create missing indexes if that's the problem.
 
-I've implemented the foundational student job application flow:
-
-1.  **Landing Page (`src/app/page.tsx`)**:
-    *   Added a "Student Job Portal" button that links to `/student/jobs`.
-    *   Updated some descriptive text to reflect the dual nature (recruiter/student) of the platform.
-
-2.  **New Student Job Listing Page (`src/app/student/jobs/page.tsx`)**:
-    *   This page fetches and displays all "Open" job requisitions from Firestore.
-    *   Each job is shown in a card with details and an "Apply Now" button.
-    *   The "Apply Now" button is enabled only for logged-in users.
-    *   **Application Logic**:
-        *   Checks if the user has already applied for the job.
-        *   If the user (based on email) doesn't have an existing candidate profile in Firestore, a basic one is created.
-        *   A new entry is added to the `jobApplications` collection in Firestore.
-        *   Toast notifications provide feedback to the user.
-
-3.  **New Student Layout (`src/app/student/layout.tsx`)**:
-    *   A simple layout wraps the student pages. It ensures the main navbar and footer from the root layout are still present by default, but adds `pt-16` to the main content to account for a sticky navbar if you have one. You can customize this further if students need a different global UI.
-
-4.  **README Update**:
-    *   The README (`README.md`) has been updated to include the new student job application feature, the project structure for student pages, and relevant setup instructions.
-
-This provides a good starting point for the student-facing part of your ATS. Students can now view open positions and submit applications, which will then be visible to recruiters in the Job Requisition details view.
+If you've confirmed your security rules are set up to allow public reads on `jobRequisitions` and the error still occurs, there might be another issue (like a missing Firestore index, or a problem with the `createdAt` field in some of your job documents), but the security rules are the most common cause for this specific error message on a public-facing page.
