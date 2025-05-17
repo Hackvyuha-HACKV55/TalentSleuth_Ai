@@ -64,13 +64,13 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
           <AvatarImage src={candidate.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional" />
           <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(displayName)}</AvatarFallback>
         </Avatar>
-        <div className="grid gap-1 flex-grow">
-          <CardTitle className="text-xl text-foreground">{displayName}</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">{displayRole}</CardDescription>
+        <div className="grid gap-1 flex-grow overflow-hidden"> {/* Added overflow-hidden here */}
+          <CardTitle className="text-xl text-foreground truncate">{displayName}</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground truncate">{displayRole}</CardDescription>
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" disabled={!candidate.id || isDeleting}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0" disabled={!candidate.id || isDeleting}>
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </Button>
           </AlertDialogTrigger>
@@ -93,17 +93,17 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </AlertDialog>
       </CardHeader>
       <CardContent className="grid gap-3 flex-grow pt-0">
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Mail className="h-4 w-4" />
-          <span>{displayEmail}</span>
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground overflow-hidden">
+          <Mail className="h-4 w-4 shrink-0" />
+          <span className="truncate">{displayEmail}</span>
         </div>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Briefcase className="h-4 w-4" />
+          <Briefcase className="h-4 w-4 shrink-0" />
           <span>Top Skill: <Badge variant="secondary" className="ml-1">{displayTopSkill}</Badge></span>
         </div>
         {candidate.fitScore !== undefined && candidate.fitScore !== null && (
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Star className="h-4 w-4 text-accent" />
+            <Star className="h-4 w-4 text-accent shrink-0" />
             <span>
               Fit Score: <span className="font-semibold text-accent">{candidate.fitScore}%</span>
             </span>
