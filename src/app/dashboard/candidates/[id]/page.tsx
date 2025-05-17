@@ -14,7 +14,7 @@ import { use, useState, useEffect } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText, MessageCircleMore, ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/lib/mock-data";
+import type { UnifiedCandidate } from "@/context/candidate-context"; // Changed import from lib/mock-data
 
 interface CandidateProfilePageProps {
   params: Promise<{ id: string }>; 
@@ -63,7 +63,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       return;
     }
     if (!hasProfileLinks) {
-        toast({ title: "No Profile Links Found", description: "Resume content does not seem to contain links to LinkedIn, GitHub, or Naukri. Discovery may be limited.", variant: "default" });
+        toast({ title: "No Profile Links Detected", description: "Resume content does not seem to contain direct links or text references to LinkedIn, GitHub, or Naukri. Discovery may be limited.", variant: "default" });
     }
     setIsLoadingDiscovery(true);
     try {
@@ -78,8 +78,12 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   };
 
   const runRedFlagDetection = async () => {
-    if (!candidate?.resumeTextContent || !profileDiscoveryResult?.summary) {
-       toast({ title: "Missing data for red flag detection.", description: "Ensure resume details and profile discovery are available.", variant: "destructive" });
+    if (!candidate?.resumeTextContent) {
+       toast({ title: "Missing Resume Data", description: "Resume text content is needed for red flag detection.", variant: "destructive" });
+      return;
+    }
+    if (!profileDiscoveryResult?.summary) {
+       toast({ title: "Profile Discovery Needed", description: "Please run Profile Discovery first. Red Flag Detection compares resume data against online profiles.", variant: "destructive" });
       return;
     }
     setIsLoadingRedFlags(true);
@@ -116,13 +120,13 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   };
   
   const ResumeDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
-    if (!value && value !== "") return null; 
+    if (!value || value.trim() === "" || value.toLowerCase() === "not found" || value.toLowerCase() === "n/a" ) return null; 
     return (
       <div className="flex items-start space-x-3 py-3">
         <Icon className="h-5 w-5 text-primary mt-1 shrink-0" />
         <div>
           <p className="text-sm font-semibold text-muted-foreground">{label}</p>
-          <p className="text-md text-foreground whitespace-pre-wrap">{value || "Not found"}</p>
+          <p className="text-md text-foreground whitespace-pre-wrap">{value}</p>
         </div>
       </div>
     );
@@ -151,7 +155,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full max-w-5xl">
+    <div className="space-y-8 w-full max-w-5xl mx-auto">
       <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
         <CardHeader className="bg-secondary/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -197,7 +201,10 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   {isLoadingDiscovery ? "Searching..." : "Run Discovery"}
                 </Button>
               </div>
-               {!hasProfileLinks && <CardDescription className="text-xs text-amber-600 mt-1">Profile Discovery is more effective if resume text contains links to LinkedIn, GitHub, or Naukri. Button disabled.</CardDescription>}
+               <CardDescription className="text-xs text-muted-foreground mt-1">
+                AI simulates searching for the candidate's online presence (e.g., LinkedIn, GitHub, Naukri). 
+                Most effective if the resume includes direct links or text references to these platforms. Analysis proceeds using name/email even with plain text references.
+               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
@@ -208,10 +215,10 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 </div>
               )}
               {!isLoadingDiscovery && !profileDiscoveryResult && !hasProfileLinks &&
-                <p className="text-sm text-muted-foreground">The resume text does not appear to contain links to LinkedIn, GitHub, or Naukri. Profile Discovery is disabled. Update resume content if needed.</p>
+                <p className="text-sm text-muted-foreground">The resume text does not appear to contain links or text references to LinkedIn, GitHub, or Naukri. Profile Discovery may be limited but will attempt search based on name/email. Click "Run Discovery" to proceed.</p>
               }
               {!isLoadingDiscovery && !profileDiscoveryResult && hasProfileLinks &&
-                <p className="text-sm text-muted-foreground">Click &quot;Run Discovery&quot; to fetch and summarize online profile data (simulated search across LinkedIn, GitHub, Naukri).</p>
+                <p className="text-sm text-muted-foreground">Click "Run Discovery" to fetch and summarize online profile data.</p>
               }
             </CardContent>
           </Card>
@@ -227,7 +234,10 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   {isLoadingRedFlags ? "Analyzing..." : "Detect Flags"}
                 </Button>
               </div>
-              {(!profileDiscoveryResult || !candidate.resumeTextContent) && <CardDescription className="text-xs text-amber-600">Run Profile Discovery and ensure resume text is available to enable Red Flag Detection.</CardDescription>}
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Compares resume data against the (simulated) online profile information obtained from "Profile Discovery". 
+                Analyzes for discrepancies in work history, frequent job changes, and outdated information. Ensure resume content is available and Profile Discovery has been run.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingRedFlags && <p className="text-muted-foreground">Analyzing for red flags...</p>}
@@ -239,7 +249,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{redFlagResult.inconsistencies}</p>
                 </div>
               )}
-              {!isLoadingRedFlags && !redFlagResult && <p className="text-sm text-muted-foreground">Click &quot;Detect Flags&quot; to analyze resume against profile data for discrepancies, job switching patterns, and outdated info.</p>}
+              {!isLoadingRedFlags && !redFlagResult && <p className="text-sm text-muted-foreground">Click "Detect Flags" after running "Profile Discovery" to analyze for potential red flags.</p>}
             </CardContent>
           </Card>
 
@@ -301,3 +311,5 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     </div>
   );
 }
+
+    
