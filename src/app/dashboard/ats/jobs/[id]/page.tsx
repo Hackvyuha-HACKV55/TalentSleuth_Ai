@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCandidateContext, type UnifiedCandidate } from "@/context/candidate-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Label } from "@/components/ui/label"; // Added import for Label
 
 interface JobRequisition extends DocumentData {
   id: string;
@@ -95,7 +96,7 @@ export default function JobRequisitionDetailPage() {
         try {
             const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
             const querySnapshot = await getDocs(q);
-            const fetchedApplicants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobApplication));
+            const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
             setApplicants(fetchedApplicants);
         } catch (error) {
             console.error("Error fetching applicants for job:", error);
@@ -164,7 +165,7 @@ export default function JobRequisitionDetailPage() {
         // Re-fetch applicants to get accurate data
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
-        const fetchedApplicants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobApplication));
+        const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
         setApplicants(fetchedApplicants);
 
 
@@ -246,7 +247,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-4xl mx-auto"> {/* Adjusted max-width */}
+    <div className="space-y-8 w-full max-w-4xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
