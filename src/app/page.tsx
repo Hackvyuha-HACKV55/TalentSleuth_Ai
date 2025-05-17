@@ -95,7 +95,7 @@ export default function LandingPage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border-primary text-primary hover:bg-primary/10">
-                <Link href="/student/jobs">
+                <Link href="/student/login"> {/* Changed from /student/jobs to /student/login */}
                   Student Job Portal
                   <GraduationCap className="ml-2 h-5 w-5" /> {/* Used GraduationCap */}
                 </Link>
