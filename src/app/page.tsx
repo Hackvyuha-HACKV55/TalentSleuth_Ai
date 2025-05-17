@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Search, FileText, BarChart2, AlertTriangle, Brain } from "lucide-react";
-import Image from "next/image";
+// Removed Image import as it's no longer used
 import Link from "next/link";
 
 const features = [
@@ -38,38 +38,29 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-background to-secondary/30">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="space-y-2">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                  TalentSleuth AI
-                </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Your intelligent Virtual Talent Analyst. Streamline your hiring process with AI-powered resume parsing, candidate validation, and role-fitment recommendations.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <Link href="/dashboard">
-                    Get Started
-                    <CheckCircle className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <Link href="#features">
-                    Learn More
-                  </Link>
-                </Button>
-              </div>
+          {/* Updated layout: removed grid and image, centered text content */}
+          <div className="flex flex-col items-center justify-center space-y-6 text-center">
+            <div className="space-y-3">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
+                TalentSleuth AI
+              </h1>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                Your intelligent Virtual Talent Analyst. Streamline your hiring process with AI-powered resume parsing, candidate validation, and role-fitment recommendations.
+              </p>
             </div>
-            <Image
-              src="https://placehold.co/600x400.png"
-              alt="TalentSleuth AI Platform Showcase"
-              width={600}
-              height={400}
-              className="mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-xl"
-              data-ai-hint="abstract technology hiring"
-            />
+            <div className="flex flex-col gap-3 min-[400px]:flex-row justify-center">
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Link href="/dashboard">
+                  Get Started
+                  <CheckCircle className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Link href="#features">
+                  Learn More
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
