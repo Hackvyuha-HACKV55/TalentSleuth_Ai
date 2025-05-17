@@ -11,7 +11,8 @@ import {
   Briefcase,
   Settings,
   LogOut,
-  HelpCircle, // Or ListChecks
+  HelpCircle,
+  Columns, // Using Columns for Compare
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -31,6 +32,7 @@ import { Button } from "../ui/button";
 const mainNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/candidates", label: "Candidates", icon: Users },
+  { href: "/dashboard/compare-candidates", label: "Compare", icon: Columns },
 ];
 
 const toolsNavItems = [
