@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, FileText, Users, GitCompareArrows, Search as SearchIcon, HelpCircle, Database, UploadCloud, Cpu, Eye, Target, ListChecks, Users2, ShieldCheck, Code2, Package, ArrowRight } from "lucide-react";
+import { Check, X, FileText, Users, GitCompareArrows, Search as SearchIcon, HelpCircle, Database, UploadCloud, Cpu, Eye, Target, ListChecks, Users2, Code2, Package, ArrowRight, GraduationCap } from "lucide-react"; // Replaced UserGraduate with GraduationCap
 import Link from "next/link";
 
 const coreFeatures = [
@@ -38,7 +38,7 @@ const coreFeatures = [
 ];
 
 const howItWorksSteps = [
-  { icon: <UploadCloud className="h-6 w-6 text-accent" />, step: "Upload a candidate's resume" },
+  { icon: <UploadCloud className="h-6 w-6 text-accent" />, step: "Upload a candidate's resume (Recruiter)" },
   { icon: <Cpu className="h-6 w-6 text-accent" />, step: "AI parses and extracts profile details" },
   { icon: <Eye className="h-6 w-6 text-accent" />, step: "View the candidate dossier and insights" },
   { icon: <Target className="h-6 w-6 text-accent" />, step: "Upload a job description for fitment scoring" },
@@ -48,17 +48,17 @@ const howItWorksSteps = [
 const userScenarios = [
   {
     icon: <Users2 className="h-8 w-8 text-primary" />,
-    title: "For Startups",
-    description: "Screen multiple applicants quickly without a dedicated HR team.",
+    title: "For Startups & Recruiters",
+    description: "Screen multiple applicants quickly, detect inconsistencies, and automate first-round filtering.",
   },
   {
-    icon: <ShieldCheck className="h-8 w-8 text-primary" />,
-    title: "For HR Teams",
-    description: "Detect inconsistencies in resumes and automate first-round filtering.",
+    icon: <GraduationCap className="h-8 w-8 text-primary" />, // Used GraduationCap
+    title: "For Students & Job Seekers",
+    description: "Easily find and apply for open positions directly through the platform.",
   },
   {
     icon: <Code2 className="h-8 w-8 text-primary" />,
-    title: "For Tech Recruiters",
+    title: "For Tech Hiring",
     description: "Score developer resumes against job requirements and generate coding questions.",
   },
 ];
@@ -80,18 +80,24 @@ export default function LandingPage() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary mb-4">
                 TalentSleuth AI – Your Virtual Talent Analyst
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl mb-6">
-                Streamline your hiring with AI-driven resume parsing, red flag detection, fitment analysis, and interview prep.
+                Streamline your hiring with AI-driven resume parsing, red flag detection, fitment analysis, and interview prep. Job seekers can find and apply for openings too!
               </p>
             </div>
             <div className="flex flex-col gap-3 min-[400px]:flex-row justify-center">
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                 <Link href="/dashboard">
-                  Get Started
+                  Recruiter Portal
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border-primary text-primary hover:bg-primary/10">
+                <Link href="/student/jobs">
+                  Student Job Portal
+                  <GraduationCap className="ml-2 h-5 w-5" /> {/* Used GraduationCap */}
                 </Link>
               </Button>
             </div>
@@ -107,7 +113,7 @@ export default function LandingPage() {
               What is TalentSleuth AI?
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-lg/relaxed lg:text-base/relaxed xl:text-lg/relaxed">
-              TalentSleuth AI empowers HR teams with intelligent automation: it parses resumes, detects red flags, evaluates job fitment, and generates tailored interview questions—all securely stored using Firebase Firestore. Save time, improve quality, and hire smarter.
+              TalentSleuth AI empowers HR teams with intelligent automation: it parses resumes, detects red flags, evaluates job fitment, and generates tailored interview questions—all securely stored using Firebase Firestore. Students can discover and apply for relevant job openings. Save time, improve quality, and hire smarter.
             </p>
           </div>
         </div>
@@ -121,10 +127,10 @@ export default function LandingPage() {
               Core Capabilities
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-3">
-              Empowering Your Recruitment
+              Empowering Your Recruitment & Job Search
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-8">
-              Discover how TalentSleuth AI can transform your talent acquisition strategy.
+              Discover how TalentSleuth AI can transform your talent acquisition strategy and help job seekers.
             </p>
           </div>
           <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none">
@@ -166,6 +172,13 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground">{item.step}</p>
               </div>
             ))}
+             <div className="flex flex-col items-center text-center p-4 md:col-span-2 lg:col-start-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground mb-3">
+                  <GraduationCap className="h-6 w-6 text-accent" /> {/* Used GraduationCap */}
+                </div>
+                <p className="font-semibold text-foreground">Student Apply</p>
+                <p className="text-sm text-muted-foreground">Students find & apply for jobs</p>
+              </div>
           </div>
         </div>
       </section>
@@ -271,7 +284,7 @@ export default function LandingPage() {
             <Card className="rounded-2xl shadow-lg border border-dashed hover:shadow-xl transition-shadow duration-300">
               <CardHeader>
                  <div className="flex items-center gap-3">
-                  <Package className="h-8 w-8 text-accent" /> {/* Or Sparkles */}
+                  <Package className="h-8 w-8 text-accent" />
                   <CardTitle className="text-2xl text-accent">Pro Plan</CardTitle>
                 </div>
                 <CardDescription className="text-sm text-muted-foreground">Coming Soon!</CardDescription>
@@ -296,16 +309,16 @@ export default function LandingPage() {
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight text-primary mb-3">
-              Ready to streamline your hiring process?
+              Ready to streamline your hiring process or find your next role?
             </h2>
             <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-6">
-              Try TalentSleuth AI today and discover better hiring with AI.
+              Try TalentSleuth AI today and discover better hiring with AI or explore new career opportunities.
             </p>
           </div>
           <div className="mx-auto w-full max-w-sm space-y-2">
              <Button asChild size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                   <Link href="/signup">
-                    Try TalentSleuth AI Now <ArrowRight className="ml-2 h-5 w-5" />
+                    Get Started with TalentSleuth AI <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
           </div>
