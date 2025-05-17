@@ -63,7 +63,7 @@ export default function CreateJobRequisitionPage() {
   };
 
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
+    <div className="space-y-8 w-full max-w-4xl"> 
        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Briefcase className="mr-3 h-8 w-8 text-primary" />
@@ -74,14 +74,14 @@ export default function CreateJobRequisitionPage() {
         </p>
       </div>
 
-      <Card className="w-full rounded-2xl shadow-xl bg-card border">
-        <CardHeader>
+      <Card className="w-full rounded-lg shadow-lg bg-card border">
+        <CardHeader className="p-6">
           <CardTitle className="text-2xl text-primary">Job Details</CardTitle>
           <CardDescription>
             Fields marked with * are required.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Job Title *</Label>

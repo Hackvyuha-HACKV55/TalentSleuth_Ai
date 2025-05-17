@@ -152,8 +152,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
-      <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden bg-card border">
+    <div className="space-y-8 w-full max-w-4xl">
+      <Card className="rounded-lg shadow-lg overflow-hidden bg-card border">
         <CardHeader className="bg-card/50 p-6"> 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
@@ -172,11 +172,11 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border">
-            <CardHeader>
+          <Card className="rounded-lg shadow-lg bg-card border">
+            <CardHeader className="p-6">
                 <CardTitle className="text-xl text-primary flex items-center"><FileText className="mr-2 h-5 w-5" /> Parsed Resume Details</CardTitle>
             </CardHeader>
-            <CardContent className="divide-y divide-border/60">
+            <CardContent className="divide-y divide-border/60 p-6 pt-0">
                 <ResumeDetailItem icon={User} label="Name" value={candidate.name} />
                 <ResumeDetailItem icon={Mail} label="Email" value={candidate.email} />
                 <ResumeDetailItem icon={Phone} label="Phone" value={candidate.phone} />
@@ -189,8 +189,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
           
           <Separator />
 
-          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border">
-            <CardHeader>
+          <Card className="rounded-lg shadow-lg bg-card border">
+            <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
                 <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery || !hasProfileLinks} size="sm" variant="outline" className="rounded-lg">
@@ -204,7 +204,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 {!hasProfileLinks && " (No direct platform links detected in resume.)"}
                </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 pt-0">
               {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
               {profileDiscoveryResult && (
                 <div className="p-4 bg-card/80 rounded-md border"> 
@@ -222,8 +222,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border">
-             <CardHeader>
+          <Card className="rounded-lg shadow-lg bg-card border">
+             <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><AlertTriangle className="mr-2 h-5 w-5" /> Red Flag Detection</CardTitle>
                  <Button onClick={runRedFlagDetection} disabled={isLoadingRedFlags || !profileDiscoveryResult || !candidate.resumeTextContent} size="sm" variant="outline" className="rounded-lg">
@@ -236,7 +236,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 Analyzes for discrepancies in work history, frequent job changes, and outdated information. Ensure resume content is available and Profile Discovery has been run.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 pt-0">
               {isLoadingRedFlags && <p className="text-muted-foreground">Analyzing for red flags...</p>}
               {redFlagResult && (
                  <div className={`p-4 rounded-md ${redFlagResult.flagged ? 'bg-destructive/10 border border-destructive' : 'bg-green-500/10 border border-green-500'}`}>
@@ -252,14 +252,14 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border">
-            <CardHeader>
+          <Card className="rounded-lg shadow-lg bg-card border">
+            <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><MessageCircleMore className="mr-2 h-5 w-5" /> Sentiment Analysis</CardTitle>
               </div>
               <CardDescription>Analyze the sentiment of an endorsement, review, or any text related to the candidate.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-6 pt-0">
               <div>
                 <Label htmlFor="endorsement-text">Text to Analyze</Label>
                 <Textarea

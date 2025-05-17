@@ -23,15 +23,14 @@ export default function CandidatesListPage() {
   
   const uniqueSkills = ["all", ...new Set(candidates.map(c => c.topSkill).filter(Boolean) as string[])];
 
-
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
+    <div className="space-y-8 w-full max-w-7xl">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Candidates</h1>
         <p className="text-muted-foreground">Browse and manage your talent pool from the central database.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center">
+      <div className="flex flex-col md:flex-row gap-4 items-center p-4 bg-card rounded-lg shadow-lg border">
         <div className="relative w-full md:flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
@@ -62,7 +61,7 @@ export default function CandidatesListPage() {
           <p className="text-lg text-muted-foreground">Loading candidates from database...</p>
         </div>
       ) : filteredCandidates.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCandidates.map((candidate) => (
              candidate.id && candidate.name && candidate.email ? 
             <CandidateCard key={candidate.id} candidate={candidate} />
@@ -70,7 +69,7 @@ export default function CandidatesListPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-card rounded-lg shadow-lg border p-6">
           <p className="text-xl text-muted-foreground">
             {candidates.length === 0 ? "No candidates found in the database." : "No candidates found matching your criteria."}
           </p>

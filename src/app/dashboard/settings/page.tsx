@@ -9,7 +9,7 @@ import { UserCircle, Bell, Palette } from "lucide-react";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
+    <div className="space-y-8 w-full max-w-3xl"> 
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="text-muted-foreground">Manage your account and application preferences.</p>
@@ -17,12 +17,12 @@ export default function SettingsPage() {
 
       <div className="grid gap-8 md:grid-cols-1"> 
         {/* Profile Settings */}
-        <Card className="rounded-2xl shadow-lg bg-card border">
-          <CardHeader>
+        <Card className="rounded-lg shadow-lg bg-card border">
+          <CardHeader className="p-6">
             <CardTitle className="text-xl text-primary flex items-center"><UserCircle className="mr-2 h-5 w-5" /> Profile Settings</CardTitle>
             <CardDescription>Update your personal information.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label htmlFor="fullName">Full Name</Label>
@@ -40,12 +40,12 @@ export default function SettingsPage() {
         <Separator />
 
         {/* Notification Settings */}
-        <Card className="rounded-2xl shadow-lg bg-card border">
-          <CardHeader>
+        <Card className="rounded-lg shadow-lg bg-card border">
+          <CardHeader className="p-6">
             <CardTitle className="text-xl text-primary flex items-center"><Bell className="mr-2 h-5 w-5" /> Notification Settings</CardTitle>
             <CardDescription>Manage how you receive notifications.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-6">
             <div className="flex items-center justify-between space-x-2 p-3 border rounded-lg">
               <Label htmlFor="emailNotifications" className="font-normal">
                 Email Notifications for New Matches
@@ -64,12 +64,12 @@ export default function SettingsPage() {
         <Separator />
 
         {/* Appearance Settings - Basic Placeholder */}
-        <Card className="rounded-2xl shadow-lg bg-card border">
-          <CardHeader>
+        <Card className="rounded-lg shadow-lg bg-card border">
+          <CardHeader className="p-6">
             <CardTitle className="text-xl text-primary flex items-center"><Palette className="mr-2 h-5 w-5" /> Appearance</CardTitle>
             <CardDescription>Customize the look and feel of the application.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-6">
              <div className="flex items-center justify-between space-x-2 p-3 border rounded-lg">
               <Label htmlFor="darkMode" className="font-normal">
                 Dark Mode

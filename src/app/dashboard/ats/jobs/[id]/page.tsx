@@ -246,8 +246,8 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 w-full max-w-4xl"> 
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
             <PackageOpen className="mr-3 h-8 w-8 text-primary" />
@@ -257,20 +257,20 @@ export default function JobRequisitionDetailPage() {
             Viewing details for: <span className="font-semibold text-primary">{job.title}</span>
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild className="rounded-lg">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" asChild className="rounded-lg flex-grow sm:flex-grow-0">
             <Link href="/dashboard/ats/jobs">
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Jobs List
             </Link>
           </Button>
-           <Button variant="default" className="rounded-lg" disabled> 
+           <Button variant="default" className="rounded-lg flex-grow sm:flex-grow-0" disabled> 
             <Edit className="mr-2 h-4 w-4" /> Edit Job (Soon)
           </Button>
         </div>
       </div>
 
-      <Card className="w-full rounded-2xl shadow-xl bg-card border">
-        <CardHeader>
+      <Card className="w-full rounded-lg shadow-lg bg-card border">
+        <CardHeader className="p-6">
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-2xl text-primary">{job.title}</CardTitle>
@@ -284,7 +284,7 @@ export default function JobRequisitionDetailPage() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="pt-2">
+        <CardContent className="pt-2 p-6">
             <Separator className="my-4" />
             <DetailItem label="Full Job Description" value={job.description} />
             <Separator className="my-4" />
@@ -292,8 +292,8 @@ export default function JobRequisitionDetailPage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full rounded-2xl shadow-xl bg-card border">
-        <CardHeader>
+      <Card className="w-full rounded-lg shadow-lg bg-card border">
+        <CardHeader className="p-6">
             <CardTitle className="text-xl text-primary flex items-center">
                 <Users className="mr-2 h-5 w-5" /> Applicants for this Job
             </CardTitle>
@@ -301,9 +301,9 @@ export default function JobRequisitionDetailPage() {
                 Manage candidates who have applied or been assigned to this role.
             </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="flex items-end gap-3">
-                <div className="flex-grow space-y-1.5">
+        <CardContent className="space-y-6 p-6">
+            <div className="flex flex-col sm:flex-row items-end gap-3">
+                <div className="flex-grow space-y-1.5 w-full sm:w-auto">
                     <Label htmlFor="candidate-select">Select Candidate to Add</Label>
                     <Select onValueChange={setSelectedCandidateId} value={selectedCandidateId}>
                         <SelectTrigger id="candidate-select" className="w-full rounded-lg">
@@ -318,7 +318,7 @@ export default function JobRequisitionDetailPage() {
                         </SelectContent>
                     </Select>
                 </div>
-                <Button onClick={handleAddApplicant} disabled={isAddingApplicant || !selectedCandidateId} className="rounded-lg">
+                <Button onClick={handleAddApplicant} disabled={isAddingApplicant || !selectedCandidateId} className="rounded-lg w-full sm:w-auto">
                     {isAddingApplicant ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                     {isAddingApplicant ? "Adding..." : "Add Applicant"}
                 </Button>
@@ -330,7 +330,7 @@ export default function JobRequisitionDetailPage() {
                     <p className="ml-2 text-muted-foreground">Loading applicants...</p>
                 </div>
             ) : applicants.length > 0 ? (
-                 <div className="border rounded-lg overflow-hidden bg-card">
+                 <div className="border rounded-lg overflow-x-auto bg-card">
                     <Table>
                         <TableHeader className="bg-card/50"> 
                         <TableRow>

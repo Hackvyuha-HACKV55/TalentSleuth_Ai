@@ -23,12 +23,12 @@ export default function DashboardOverviewPage() {
     .slice(0, 3);
 
   const StatCard = ({ title, value, icon: Icon, description, isLoading }: { title: string; value: string | number; icon: React.ElementType; description: string; isLoading?: boolean }) => (
-    <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card border">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <Card className="rounded-lg shadow-lg bg-card border">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
         <CardTitle className="text-sm font-medium text-primary">{title}</CardTitle>
         <Icon className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6 pt-0">
         {isLoading ? (
           <Loader2 className="h-7 w-7 animate-spin text-primary" />
         ) : (
@@ -39,11 +39,9 @@ export default function DashboardOverviewPage() {
     </Card>
   );
 
-
   return (
-    // This root div uses w-full to fill the centered container from DashboardLayout
-    <div className="space-y-8 w-full">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-8 w-full max-w-6xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Welcome back, {user?.displayName || user?.email?.split('@')[0] || "User"}!
@@ -52,13 +50,13 @@ export default function DashboardOverviewPage() {
             Here&apos;s an overview of your talent acquisition pipeline.
           </p>
         </div>
-        <div className="flex gap-3">
-           <Button asChild size="lg" className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+           <Button asChild size="lg" className="rounded-lg shadow-sm hover:shadow-md transition-shadow w-full sm:w-auto">
             <Link href="/dashboard/upload-resume">
               <FileUp className="mr-2 h-4 w-4" /> Upload Resume
             </Link>
           </Button>
-           <Button asChild size="lg" variant="outline" className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
+           <Button asChild size="lg" variant="outline" className="rounded-lg shadow-sm hover:shadow-md transition-shadow w-full sm:w-auto">
             <Link href="/dashboard/upload-jd">
               <ClipboardList className="mr-2 h-4 w-4" /> Upload Job Description
             </Link>
@@ -66,7 +64,7 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
             title="Total Candidates"
             value={candidates.length}
@@ -109,7 +107,7 @@ export default function DashboardOverviewPage() {
             <p className="ml-3 text-muted-foreground">Loading recent candidates...</p>
           </div>
         ) : recentCandidates.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {recentCandidates.map(candidate => (
               candidate.id && candidate.name && candidate.email ?
               <CandidateCard key={candidate.id} candidate={candidate} />
@@ -120,7 +118,6 @@ export default function DashboardOverviewPage() {
           <p className="text-muted-foreground text-center py-6">No recent candidates to display. Try uploading a resume.</p>
         )}
       </div>
-
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </SidebarTrigger>
         </header>
         {/* This div below wraps the page content. It constrains width and centers. */}
-        <div className="w-full flex-1 max-w-7xl mx-auto px-6 sm:px-8 py-6 sm:py-8 animate-fadeIn"> 
+        <div className="w-full flex-1 flex flex-col items-center p-4 sm:p-6 md:p-8 animate-fadeIn"> 
           {children}
         </div>
       </SidebarInset>

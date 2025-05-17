@@ -72,8 +72,8 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <div className="space-y-8 w-full"> {/* Removed max-w and mx-auto */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 w-full max-w-5xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
             <Archive className="mr-3 h-8 w-8 text-primary" />
@@ -83,28 +83,28 @@ export default function JobRequisitionsPage() {
             Manage all your company's job openings from one place.
           </p>
         </div>
-        <Button asChild className="rounded-lg">
+        <Button asChild className="rounded-lg w-full sm:w-auto">
           <Link href="/dashboard/ats/jobs/create">
             <PlusCircle className="mr-2 h-4 w-4" /> Create New Job
           </Link>
         </Button>
       </div>
 
-      <Card className="rounded-2xl shadow-xl bg-card border">
-        <CardHeader>
+      <Card className="rounded-lg shadow-lg bg-card border">
+        <CardHeader className="p-6">
           <CardTitle>Current Job Openings</CardTitle>
           <CardDescription>
             View, edit, or manage candidates for existing job requisitions.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6"> {/* No padding on mobile for edge-to-edge table, padding on md+ */}
           {loading ? (
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="ml-3 text-muted-foreground">Loading job requisitions...</p>
             </div>
           ) : jobs.length > 0 ? (
-            <div className="border rounded-lg overflow-hidden bg-card">
+            <div className="border rounded-lg overflow-x-auto bg-card">
             <Table>
               <TableHeader className="bg-card/50"> 
                 <TableRow>
@@ -139,7 +139,7 @@ export default function JobRequisitionsPage() {
             </Table>
             </div>
           ) : (
-            <div className="text-center py-10 bg-card rounded-lg">
+            <div className="text-center py-10 bg-card rounded-lg p-6">
               <Archive className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
               <p className="text-xl text-muted-foreground">No job requisitions found.</p>
               <p className="text-sm text-muted-foreground">
