@@ -83,7 +83,7 @@ export default function LandingPage() {
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
                 TalentSleuth AI – Your Virtual Talent Analyst
               </h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl mb-6">
                 Streamline your hiring with AI-driven resume parsing, red flag detection, fitment analysis, and interview prep.
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function LandingPage() {
       <section id="overview" className="w-full py-12 md:py-20 lg:py-28 bg-background">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-foreground mb-4">
               What is TalentSleuth AI?
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-lg/relaxed lg:text-base/relaxed xl:text-lg/relaxed">
@@ -117,17 +117,17 @@ export default function LandingPage() {
       <section id="features" className="w-full py-12 md:py-20 lg:py-28 bg-secondary/30">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary">
+            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary mb-2">
               Core Capabilities
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-3">
               Empowering Your Recruitment
             </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-8">
               Discover how TalentSleuth AI can transform your talent acquisition strategy.
             </p>
           </div>
-          <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none pt-12">
+          <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none">
             {coreFeatures.map((feature) => (
               <Card key={feature.title} className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card h-full">
                 <CardHeader className="pb-4">
@@ -149,10 +149,10 @@ export default function LandingPage() {
       <section id="how-it-works" className="w-full py-12 md:py-20 lg:py-28 bg-background">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary">
+            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary mb-2">
               Simple Workflow
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-8">
               How It Works
             </h2>
           </div>
@@ -174,10 +174,10 @@ export default function LandingPage() {
       <section id="user-scenarios" className="w-full py-12 md:py-20 lg:py-28 bg-secondary/30">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-             <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary">
+             <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary mb-2">
               Use Cases
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-8">
               Who Benefits?
             </h2>
           </div>
@@ -203,10 +203,10 @@ export default function LandingPage() {
       <section id="comparison" className="w-full py-12 md:py-20 lg:py-28 bg-background">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary">
+            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary mb-2">
               The Advantage
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-8">
               TalentSleuth AI vs. Manual Hiring
             </h2>
           </div>
@@ -241,15 +241,15 @@ export default function LandingPage() {
       <section id="pricing" className="w-full py-12 md:py-20 lg:py-28 bg-secondary/30">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary">
+            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm text-primary mb-2">
               Get Started
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground mb-8">
               Plans & Usage
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="rounded-2xl shadow-xl border-2 border-primary">
+            <Card className="rounded-2xl shadow-xl border-2 border-primary hover:shadow-2xl transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <Package className="h-8 w-8 text-primary" />
@@ -268,7 +268,7 @@ export default function LandingPage() {
                 </Button>
               </CardContent>
             </Card>
-            <Card className="rounded-2xl shadow-lg border border-dashed">
+            <Card className="rounded-2xl shadow-lg border border-dashed hover:shadow-xl transition-shadow duration-300">
               <CardHeader>
                  <div className="flex items-center gap-3">
                   <Package className="h-8 w-8 text-accent" /> {/* Or Sparkles */}
@@ -295,10 +295,10 @@ export default function LandingPage() {
       <section className="w-full py-12 md:py-24 lg:py-32 border-t bg-background">
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
-            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight text-primary">
+            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight text-primary mb-3">
               Ready to streamline your hiring process?
             </h2>
-            <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-6">
               Try TalentSleuth AI today and discover better hiring with AI.
             </p>
           </div>

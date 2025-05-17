@@ -152,7 +152,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
   return (
     <div className="space-y-8">
-      <Card className="rounded-2xl shadow-xl overflow-hidden">
+      <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
         <CardHeader className="bg-secondary/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
@@ -171,7 +171,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
                 <CardTitle className="text-xl text-primary flex items-center"><FileText className="mr-2 h-5 w-5" /> Parsed Resume Details</CardTitle>
             </CardHeader>
@@ -188,7 +188,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
           
           <Separator />
 
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
@@ -218,7 +218,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
              <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><AlertTriangle className="mr-2 h-5 w-5" /> Red Flag Detection</CardTitle>
@@ -245,7 +245,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><MessageCircleMore className="mr-2 h-5 w-5" /> Sentiment Analysis</CardTitle>
