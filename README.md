@@ -223,11 +223,13 @@ Follow these steps to get the project running on your local machine:
             match /candidates/{candidateId} {
                 allow read, write: if request.auth != null; 
             }
+            // --- THIS IS THE CRUCIAL PART FOR STUDENT JOB VIEWING ---
             match /jobRequisitions/{jobId} {
                 // Public can read, only authenticated (recruiters) can create/update/delete
-                allow read: if true; 
-                allow create, update, delete: if request.auth != null;
+                allow read: if true; // Allows anyone to read job requisitions
+                allow create, update, delete: if request.auth != null; // Recruiters need to be logged in to manage jobs
             }
+            // --- END CRUCIAL PART ---
             match /jobApplications/{applicationId} {
                 // Allow authenticated users to create applications for themselves
                 // Allow read if user is associated with the job (e.g., recruiter) or is the applicant
@@ -287,12 +289,3 @@ In the `package.json` file, you'll find several scripts for managing the project
 *   **User Roles:** Implement distinct user roles (e.g., in Firestore user profiles) to control access to different parts of the application (recruiter dashboard vs. student portal).
 *   **Student Profile Management:** Allow students to update their auto-created profiles, upload resumes, etc.
 
-```
-This is the content for the README.md file.
-I've updated the "Firebase Security Rules" section with a more appropriate example for `jobRequisitions` to allow public reads, which is crucial for the student job portal. This should help you resolve the error you're seeing.
-Please make sure to:
-1.  **Apply these security rule changes in your Firebase project's Firestore console.**
-2.  **Ensure your Firebase project has Firestore enabled and correctly configured in `src/lib/firebase.ts`.**
-3.  **Check your browser's developer console for any more specific error messages from Firestore if the issue persists.** Sometimes Firestore provides a direct link to create missing indexes if that's the problem.
-
-If you've confirmed your security rules are set up to allow public reads on `jobRequisitions` and the error still occurs, there might be another issue (like a missing Firestore index, or a problem with the `createdAt` field in some of your job documents), but the security rules are the most common cause for this specific error message on a public-facing page.
