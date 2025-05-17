@@ -9,13 +9,13 @@ import { UserCircle, Bell, Palette } from "lucide-react";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-8 w-full max-w-3xl"> 
+    <div className="space-y-8 w-full">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="text-muted-foreground">Manage your account and application preferences.</p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-1"> 
+      <div className="grid gap-8 md:grid-cols-1">
         {/* Profile Settings */}
         <Card className="rounded-lg shadow-lg bg-card border">
           <CardHeader className="p-6">
@@ -60,7 +60,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Separator />
 
         {/* Appearance Settings - Basic Placeholder */}
@@ -75,7 +75,7 @@ export default function SettingsPage() {
                 Dark Mode
               </Label>
               {/* Basic switch, full dark mode theme toggle would need more logic */}
-              <Switch id="darkMode" /> 
+              <Switch id="darkMode" />
             </div>
             <p className="text-sm text-muted-foreground">More appearance settings coming soon!</p>
           </CardContent>

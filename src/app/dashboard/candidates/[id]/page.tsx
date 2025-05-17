@@ -10,19 +10,19 @@ import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
 import { analyzeSentiment, type SentimentAnalysisInput, type SentimentAnalysisOutput } from "@/ai/flows/sentiment-analysis";
-import { use, useState, useEffect } from "react"; 
+import { use, useState, useEffect } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText, MessageCircleMore, ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/context/candidate-context"; 
+import { useCandidateContext } from "@/context/candidate-context";
+import type { UnifiedCandidate } from "@/context/candidate-context";
 
 interface CandidateProfilePageProps {
-  params: Promise<{ id: string }>; 
+  params: Promise<{ id: string }>;
 }
 
 export default function CandidateProfilePage({ params }: CandidateProfilePageProps) {
-  const { id: candidateId } = use(params); 
-  const { getCandidateById } = useCandidateContext(); 
+  const { id: candidateId } = use(params);
+  const { getCandidateById } = useCandidateContext();
   const candidate = getCandidateById(candidateId);
 
   const [profileDiscoveryResult, setProfileDiscoveryResult] = useState<ProfileDiscoveryOutput | null>(null);
@@ -30,7 +30,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
   const [isLoadingRedFlags, setIsLoadingRedFlags] = useState(false);
   const [hasProfileLinks, setHasProfileLinks] = useState(false);
-  
+
   const [endorsementText, setEndorsementText] = useState("");
   const [sentimentResult, setSentimentResult] = useState<SentimentAnalysisOutput | null>(null);
   const [isLoadingSentiment, setIsLoadingSentiment] = useState(false);
@@ -78,9 +78,9 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     }
     setIsLoadingRedFlags(true);
     try {
-      const result = await detectRedFlags({ 
-        resumeText: candidate.resumeTextContent, 
-        profileData: profileDiscoveryResult.summary 
+      const result = await detectRedFlags({
+        resumeText: candidate.resumeTextContent,
+        profileData: profileDiscoveryResult.summary
       });
       setRedFlagResult(result);
       toast({ title: "Red Flag Detection Complete" });
@@ -108,9 +108,9 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       setIsLoadingSentiment(false);
     }
   };
-  
+
   const ResumeDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string | null }) => {
-    if (!value || value.trim() === "" || value.toLowerCase() === "not found" || value.toLowerCase() === "n/a" ) return null; 
+    if (!value || value.trim() === "" || value.toLowerCase() === "not found" || value.toLowerCase() === "n/a" ) return null;
     return (
       <div className="flex items-start space-x-3 py-3">
         <Icon className="h-5 w-5 text-primary mt-1 shrink-0" />
@@ -128,7 +128,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     if (sentiment === "Neutral") return <Meh className="mr-2 h-5 w-5 text-yellow-500" />;
     return null;
   };
-  
+
   const getInitials = (name?: string | null) => {
     if (!name) return "??";
     const names = name.split(' ');
@@ -145,16 +145,16 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       </div>
     );
   }
-  
+
   const displayName = candidate.name || "N/A";
   const displayRole = candidate.role || "Role not specified";
   const displayEmail = candidate.email || "Email not available";
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full max-w-4xl">
-      <Card className="rounded-lg shadow-lg overflow-hidden bg-card border">
-        <CardHeader className="bg-card/50 p-6"> 
+    <div className="space-y-8 w-full">
+      <Card className="rounded-lg shadow-lg overflow-hidden bg-card border hover:shadow-2xl transition-shadow duration-300">
+        <CardHeader className="bg-card/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
               <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional portrait"/>
@@ -171,8 +171,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          
-          <Card className="rounded-lg shadow-lg bg-card border">
+
+          <Card className="rounded-lg shadow-lg bg-card border hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="p-6">
                 <CardTitle className="text-xl text-primary flex items-center"><FileText className="mr-2 h-5 w-5" /> Parsed Resume Details</CardTitle>
             </CardHeader>
@@ -186,10 +186,10 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 <ResumeDetailItem icon={Award} label="Certifications" value={candidate.certifications} />
             </CardContent>
           </Card>
-          
+
           <Separator />
 
-          <Card className="rounded-lg shadow-lg bg-card border">
+          <Card className="rounded-lg shadow-lg bg-card border hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
@@ -199,22 +199,21 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 </Button>
               </div>
                <CardDescription className="text-xs text-muted-foreground mt-1">
-                AI simulates searching for the candidate's online presence (e.g., LinkedIn, GitHub, Naukri). 
-                This feature is most effective if the candidate's resume includes URLs or specific text references to these platforms.
-                {!hasProfileLinks && " (No direct platform links detected in resume.)"}
+                AI simulates searching for the candidate&apos;s online presence (e.g., LinkedIn, GitHub, Naukri).
+                This feature is most effective if the candidate&apos;s resume includes URLs or specific text references to these platforms, even if they are plain text.
+                {!hasProfileLinks && " (No direct platform links or keywords detected in resume summary.)"}
                </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0">
               {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
               {profileDiscoveryResult && (
-                <div className="p-4 bg-card/80 rounded-md border"> 
+                <div className="p-4 bg-card/80 rounded-md border">
                   <h4 className="font-semibold text-foreground mb-1">AI Summary:</h4>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{profileDiscoveryResult.summary}</p>
                 </div>
               )}
               {!isLoadingDiscovery && !profileDiscoveryResult &&
-                <p className="text-sm text-muted-foreground">Click "Run Discovery" to attempt to fetch and summarize online profile data. 
-                {hasProfileLinks ? "Platform links/references detected in resume." : "Effectiveness may be limited if no direct platform links or references are present in the resume."}
+                <p className="text-sm text-muted-foreground">Click "Run Discovery" to attempt to fetch and summarize online profile data.
                 </p>
               }
             </CardContent>
@@ -222,7 +221,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-lg bg-card border">
+          <Card className="rounded-lg shadow-lg bg-card border hover:shadow-xl transition-shadow duration-300">
              <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><AlertTriangle className="mr-2 h-5 w-5" /> Red Flag Detection</CardTitle>
@@ -232,7 +231,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 </Button>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-1">
-                Compares resume data against the (simulated) online profile information obtained from "Profile Discovery". 
+                Compares resume data against the (simulated) online profile information obtained from &quot;Profile Discovery&quot;.
                 Analyzes for discrepancies in work history, frequent job changes, and outdated information. Ensure resume content is available and Profile Discovery has been run.
               </CardDescription>
             </CardHeader>
@@ -252,7 +251,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
           <Separator />
 
-          <Card className="rounded-lg shadow-lg bg-card border">
+          <Card className="rounded-lg shadow-lg bg-card border hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><MessageCircleMore className="mr-2 h-5 w-5" /> Sentiment Analysis</CardTitle>

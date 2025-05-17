@@ -5,7 +5,7 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarTrigger,
-  SidebarContent, 
+  SidebarContent,
   SidebarInset,
   SidebarRail,
 } from "@/components/ui/sidebar";
@@ -14,7 +14,7 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PanelLeft } from "lucide-react"; 
+import { PanelLeft } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -44,20 +44,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-        <SidebarRail /> 
-        <SidebarContent> 
+        <SidebarRail />
+        <SidebarContent>
           <DashboardSidebarNav />
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
-          <SidebarTrigger className="sm:hidden"> 
+          <SidebarTrigger className="sm:hidden">
             <PanelLeft className="h-5 w-5" />
             <span className="sr-only">Toggle Sidebar</span>
           </SidebarTrigger>
         </header>
-        {/* This div below wraps the page content. It constrains width and centers. */}
-        <div className="w-full flex-1 flex flex-col items-center p-4 sm:p-6 md:p-8 animate-fadeIn"> 
+        {/* This div below wraps the page content. It will be centered. */}
+        <div className="w-full max-w-7xl mx-auto flex-1 p-4 sm:p-6 md:p-8 animate-fadeIn">
           {children}
         </div>
       </SidebarInset>

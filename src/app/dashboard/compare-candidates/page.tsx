@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCandidateContext } from "@/context/candidate-context";
 import { ArrowRight, Loader2, UsersRound, Columns } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/context/candidate-context"; 
+import type { UnifiedCandidate } from "@/context/candidate-context";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 
@@ -23,7 +23,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-7xl">
+    <div className="space-y-8 w-full">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />
@@ -41,16 +41,16 @@ export default function CompareCandidatesPage() {
             Scroll horizontally to see all details if needed.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 md:p-6"> {/* No padding on mobile for edge-to-edge table, padding on md+ */}
+        <CardContent className="p-0 md:p-6">
           {loadingCandidates ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
               <p className="text-lg text-muted-foreground">Loading candidates...</p>
             </div>
           ) : candidates.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border"> 
+            <div className="overflow-x-auto rounded-lg border bg-card">
               <Table>
-                <TableHeader className="bg-card/50"> 
+                <TableHeader className="bg-card/50">
                   <TableRow>
                     <TableHead className="w-[80px]">Avatar</TableHead>
                     <TableHead>Name</TableHead>
@@ -71,12 +71,12 @@ export default function CompareCandidatesPage() {
                           <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(candidate.name)}</AvatarFallback>
                         </Avatar>
                       </TableCell>
-                      <TableCell className="font-medium text-foreground whitespace-nowrap">{candidate.name}</TableCell> 
-                      <TableCell className="text-muted-foreground whitespace-nowrap">{candidate.role || "N/A"}</TableCell> 
-                      <TableCell className="text-muted-foreground truncate max-w-xs">{candidate.email}</TableCell> 
+                      <TableCell className="font-medium text-foreground whitespace-nowrap">{candidate.name}</TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">{candidate.role || "N/A"}</TableCell>
+                      <TableCell className="text-muted-foreground truncate max-w-xs">{candidate.email}</TableCell>
                       <TableCell>
                         {candidate.topSkill ? (
-                          <Badge variant="secondary" className="whitespace-nowrap">{candidate.topSkill}</Badge> 
+                          <Badge variant="secondary" className="whitespace-nowrap">{candidate.topSkill}</Badge>
                         ) : (
                           <span className="text-muted-foreground text-xs">N/A</span>
                         )}

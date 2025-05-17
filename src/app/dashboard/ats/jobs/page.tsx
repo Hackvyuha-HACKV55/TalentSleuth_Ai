@@ -17,7 +17,7 @@ interface JobRequisition extends DocumentData {
   title: string;
   location: string;
   status: "Open" | "Closed" | "Draft";
-  createdAt: Date; 
+  createdAt: Date;
 }
 
 export default function JobRequisitionsPage() {
@@ -61,7 +61,7 @@ export default function JobRequisitionsPage() {
   const getStatusBadgeVariant = (status: JobRequisition['status']) => {
     switch (status) {
       case "Open":
-        return "default"; 
+        return "default";
       case "Closed":
         return "destructive";
       case "Draft":
@@ -72,7 +72,7 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-5xl">
+    <div className="space-y-8 w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -97,7 +97,7 @@ export default function JobRequisitionsPage() {
             View, edit, or manage candidates for existing job requisitions.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 md:p-6"> {/* No padding on mobile for edge-to-edge table, padding on md+ */}
+        <CardContent className="p-0 md:p-6">
           {loading ? (
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -106,7 +106,7 @@ export default function JobRequisitionsPage() {
           ) : jobs.length > 0 ? (
             <div className="border rounded-lg overflow-x-auto bg-card">
             <Table>
-              <TableHeader className="bg-card/50"> 
+              <TableHeader className="bg-card/50">
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Location</TableHead>
@@ -128,7 +128,7 @@ export default function JobRequisitionsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" asChild className="rounded-md">
-                        <Link href={`/dashboard/ats/jobs/${job.id}`}> 
+                        <Link href={`/dashboard/ats/jobs/${job.id}`}>
                           View/Edit <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                         </Link>
                       </Button>

@@ -23,7 +23,7 @@ export default function DashboardOverviewPage() {
     .slice(0, 3);
 
   const StatCard = ({ title, value, icon: Icon, description, isLoading }: { title: string; value: string | number; icon: React.ElementType; description: string; isLoading?: boolean }) => (
-    <Card className="rounded-lg shadow-lg bg-card border">
+    <Card className="rounded-lg shadow-lg bg-card border hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
         <CardTitle className="text-sm font-medium text-primary">{title}</CardTitle>
         <Icon className="h-5 w-5 text-muted-foreground" />
@@ -40,7 +40,7 @@ export default function DashboardOverviewPage() {
   );
 
   return (
-    <div className="space-y-8 w-full max-w-6xl">
+    <div className="space-y-8 w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -74,7 +74,7 @@ export default function DashboardOverviewPage() {
         />
         <StatCard
             title="Job Descriptions"
-            value={"N/A"} 
+            value={"N/A"}
             icon={ClipboardList}
             description="Active job postings"
         />
@@ -115,7 +115,11 @@ export default function DashboardOverviewPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground text-center py-6">No recent candidates to display. Try uploading a resume.</p>
+          <div className="text-center py-10 bg-card rounded-lg shadow-lg border p-6">
+            <Users className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+            <p className="text-xl text-muted-foreground">No recent candidates to display.</p>
+            <p className="text-sm text-muted-foreground">Try uploading a resume.</p>
+          </div>
         )}
       </div>
     </div>

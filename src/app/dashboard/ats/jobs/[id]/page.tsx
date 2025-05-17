@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore"; 
+import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore";
 import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -147,19 +147,8 @@ export default function JobRequisitionDetailPage() {
             candidateId: selectedCandidate.id,
             candidateName: selectedCandidate.name,
             applicationDate: serverTimestamp(),
-            status: "Applied" 
-        });
-        
-        const newApplicantData: JobApplication = {
-            id: newApplicationRef.id, 
-            jobId: job.id,
-            jobTitle: job.title,
-            candidateId: selectedCandidate.id,
-            candidateName: selectedCandidate.name,
-            applicationDate: Timestamp.now(), 
             status: "Applied"
-        };
-        setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]);
+        });
 
         // Re-fetch to ensure data consistency after adding
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
@@ -169,7 +158,7 @@ export default function JobRequisitionDetailPage() {
 
 
         toast({ title: "Applicant Added", description: `${selectedCandidate.name} added as an applicant for ${job.title}.` });
-        setSelectedCandidateId(undefined); 
+        setSelectedCandidateId(undefined);
     } catch (error) {
         console.error("Error adding applicant:", error);
         toast({ title: "Error", description: "Could not add applicant.", variant: "destructive" });
@@ -196,10 +185,10 @@ export default function JobRequisitionDetailPage() {
     switch (status) {
       case "Applied": return "default";
       case "Screening": return "secondary";
-      case "Interviewing": return "default"; 
-      case "Offered": return "default"; 
+      case "Interviewing": return "default";
+      case "Offered": return "default";
       case "Rejected": return "destructive";
-      case "Hired": return "default"; 
+      case "Hired": return "default";
       default: return "outline";
     }
   };
@@ -231,7 +220,7 @@ export default function JobRequisitionDetailPage() {
   }
 
   const DetailItem = ({ label, value, isHtml = false }: { label: string; value?: string | React.ReactNode; isHtml?: boolean }) => {
-    if (!value && typeof value !== 'number') return null; 
+    if (!value && typeof value !== 'number') return null;
     return (
       <div className="py-3">
         <h3 className="text-sm font-medium text-muted-foreground mb-0.5">{label}</h3>
@@ -246,7 +235,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-4xl"> 
+    <div className="space-y-8 w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -263,7 +252,7 @@ export default function JobRequisitionDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Jobs List
             </Link>
           </Button>
-           <Button variant="default" className="rounded-lg flex-grow sm:flex-grow-0" disabled> 
+           <Button variant="default" className="rounded-lg flex-grow sm:flex-grow-0" disabled>
             <Edit className="mr-2 h-4 w-4" /> Edit Job (Soon)
           </Button>
         </div>
@@ -332,7 +321,7 @@ export default function JobRequisitionDetailPage() {
             ) : applicants.length > 0 ? (
                  <div className="border rounded-lg overflow-x-auto bg-card">
                     <Table>
-                        <TableHeader className="bg-card/50"> 
+                        <TableHeader className="bg-card/50">
                         <TableRow>
                             <TableHead>Candidate Name</TableHead>
                             <TableHead>Application Date</TableHead>

@@ -43,7 +43,7 @@ export default function CreateJobRequisitionPage() {
         location,
         salary,
         status,
-        createdAt: serverTimestamp(), 
+        createdAt: serverTimestamp(),
       });
       toast({
         title: "Job Requisition Created",
@@ -63,7 +63,7 @@ export default function CreateJobRequisitionPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-4xl"> 
+    <div className="space-y-8 w-full">
        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Briefcase className="mr-3 h-8 w-8 text-primary" />
@@ -131,7 +131,7 @@ export default function CreateJobRequisitionPage() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select value={status} onValueChange={(value: "Open" | "Closed" | "Draft") => setStatus(value)} required>
