@@ -55,7 +55,7 @@ import Link from "next/link";
 import type { UnifiedCandidate } from "@/context/candidate-context";
 import { useCandidateContext } from "@/context/candidate-context";
 import { parseResume, type ParseResumeOutput } from "@/ai/flows/resume-parsing";
-import { generateResumeTextContent } from "@/lib/mock-data"; // Assuming it's exported
+import { generateResumeTextContent } from "@/lib/mock-data"; 
 
 interface JobRequisition {
   id: string;
@@ -74,7 +74,6 @@ export default function StudentJobsPage() {
   const { toast } = useToast();
   const { addCandidateToLocalState, refreshCandidateInLocalState } = useCandidateContext();
 
-  // State for resume upload dialog
   const [showResumeDialogForJobId, setShowResumeDialogForJobId] = useState<string | null>(null);
   const [selectedJobForApplication, setSelectedJobForApplication] = useState<JobRequisition | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -100,7 +99,7 @@ export default function StudentJobsPage() {
         console.error("Error fetching open job requisitions:", error);
         toast({
           title: "Error",
-          description: "Could not fetch job openings. Please try again later.",
+          description: "Could not fetch job openings. Please ensure Firestore indexes are set up if this persists.",
           variant: "destructive",
         });
       } finally {
@@ -140,14 +139,14 @@ export default function StudentJobsPage() {
         title: "Authentication Required",
         description: "Please log in or sign up to apply for jobs.",
         variant: "destructive",
-        action: <Button asChild><Link href="/login">Login</Link></Button>,
+        action: <Button asChild><Link href="/student/login">Login</Link></Button>, // Direct to student login
       });
       return;
     }
     setSelectedJobForApplication(job);
     setShowResumeDialogForJobId(job.id);
-    setSelectedFile(null);
-    setFileDataUri(null);
+    setSelectedFile(null); // Reset file state for new dialog
+    setFileDataUri(null); // Reset data URI state
   };
 
   const handleApplyWithResume = async () => {
@@ -159,7 +158,6 @@ export default function StudentJobsPage() {
     setIsApplyingWithResume(true);
 
     try {
-      // 1. Check for existing application
       const applicationsQuery = query(
         collection(db, "jobApplications"),
         where("jobId", "==", selectedJobForApplication.id),
@@ -173,22 +171,21 @@ export default function StudentJobsPage() {
         return;
       }
 
-      // 2. Parse Resume
       const parsedResumeOutput: ParseResumeOutput = await parseResume({ resumeDataUri: fileDataUri });
 
-      // 3. Candidate Profile Management
       let candidateId = "";
       let candidateName = parsedResumeOutput.name || user.displayName || user.email?.split('@')[0] || "Applicant";
       const resumeTextContent = generateResumeTextContent(parsedResumeOutput);
-      const candidateInitials = candidateName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() || 'AP';
+      const candidateInitials = (candidateName.split(' ').map(n=>n[0]).join('') || 'AP').substring(0,2).toUpperCase();
+
 
       const candidatesQuery = query(collection(db, "candidates"), where("email", "==", user.email));
       const candidateSnap = await getDocs(candidatesQuery);
 
-      if (!candidateSnap.empty) { // Existing candidate
+      if (!candidateSnap.empty) {
         candidateId = candidateSnap.docs[0].id;
         const existingCandidateData = candidateSnap.docs[0].data() as UnifiedCandidate;
-        candidateName = parsedResumeOutput.name || existingCandidateData.name || candidateName; // Prioritize parsed name
+        candidateName = parsedResumeOutput.name || existingCandidateData.name || candidateName;
 
         const updatedCandidateData: Partial<UnifiedCandidate> = {
             name: candidateName,
@@ -202,12 +199,13 @@ export default function StudentJobsPage() {
             resumeOriginalDataUri: fileDataUri,
             resumeTextContent: resumeTextContent,
             avatarUrl: existingCandidateData.avatarUrl || `https://placehold.co/80x80.png?text=${candidateInitials}`,
+            updatedAt: Timestamp.now(),
         };
         await updateDoc(doc(db, "candidates", candidateId), updatedCandidateData);
         refreshCandidateInLocalState(candidateId, { ...existingCandidateData, ...updatedCandidateData, id: candidateId });
         toast({ title: "Profile Updated", description: "Your candidate profile has been updated with the new resume details."});
 
-      } else { // New candidate
+      } else {
         const newCandidateRef = doc(collection(db, "candidates"));
         candidateId = newCandidateRef.id;
         const newCandidateData: UnifiedCandidate = {
@@ -224,18 +222,19 @@ export default function StudentJobsPage() {
           resumeOriginalDataUri: fileDataUri,
           resumeTextContent: resumeTextContent,
           topSkill: parsedResumeOutput.skills?.split(',')[0]?.trim() || "Not Specified",
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
         };
         await setDoc(newCandidateRef, newCandidateData);
         addCandidateToLocalState(newCandidateData);
         toast({ title: "Profile Created", description: "A candidate profile has been created for you."});
       }
 
-      // 4. Create Job Application
       await addDoc(collection(db, "jobApplications"), {
         jobId: selectedJobForApplication.id,
         jobTitle: selectedJobForApplication.title,
         candidateId: candidateId,
-        candidateName: candidateName, // Use the determined candidate name
+        candidateName: candidateName, 
         candidateEmail: user.email,
         applicationDate: serverTimestamp(),
         status: "Applied",
@@ -319,7 +318,7 @@ export default function StudentJobsPage() {
                 <Button
                   className="w-full rounded-lg"
                   onClick={() => openResumeDialog(job)}
-                  disabled={authLoading || !user}
+                  disabled={authLoading} 
                 >
                   <Send className="mr-2 h-4 w-4" />
                   {user ? "Apply Now" : "Login to Apply"}
@@ -331,7 +330,7 @@ export default function StudentJobsPage() {
       )}
 
       {selectedJobForApplication && showResumeDialogForJobId === selectedJobForApplication.id && (
-        <Dialog open={!!showResumeDialogForJobId} onOpenChange={(isOpen) => !isOpen && setShowResumeDialogForJobId(null)}>
+        <Dialog open={!!showResumeDialogForJobId} onOpenChange={(isOpen) => { if (!isOpen) { setShowResumeDialogForJobId(null); setSelectedFile(null); setFileDataUri(null); }}}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="flex items-center">
