@@ -5,89 +5,65 @@
 
 @layer base {
   :root {
-    /* Palette based on Olive Green, White, Off-White */
-    --background: 0 0% 98%; /* Very Light Off-White / Almost White (Main Content BG) */
-    --foreground: 0 0% 25%; /* Dark Grey (Main Text) */
-
-    --card: 0 0% 96%; /* Off-White (Cards, Sidebar BG) */
-    --card-foreground: 0 0% 25%; /* Dark Grey (Text on Cards) */
-
-    --popover: 0 0% 96%; /* Off-White */
-    --popover-foreground: 0 0% 25%; /* Dark Grey */
-
-    --primary: 80 25% 38%; /* Muted Olive Green (Accent) */
-    --primary-foreground: 60 50% 97%; /* Light Cream/Off-White (Text on Olive) */
-
-    --secondary: 0 0% 93%; /* Light Grey (e.g., Badge Backgrounds) */
-    --secondary-foreground: 80 25% 30%; /* Darker Olive (Text on Light Grey Badges/Secondary elements) */
-
-    --muted: 0 0% 90%; /* Light Grey (Muted Backgrounds if needed) */
-    --muted-foreground: 0 0% 45%; /* Medium Grey (Secondary/Muted Text) */
-
-    --accent: 80 25% 38%; /* Muted Olive Green (Same as Primary) */
-    --accent-foreground: 60 50% 97%; /* Light Cream/Off-White */
-
-    --destructive: 0 72% 51%; /* Standard Red */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 25%;
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 25%;
+    --popover: 0 0% 96%;
+    --popover-foreground: 0 0% 25%;
+    --primary: 80 25% 38%;
+    --primary-foreground: 60 50% 97%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 80 25% 30%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 80 25% 38%;
+    --accent-foreground: 60 50% 97%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 88%; /* Light Grey (Borders) */
-    --input: 0 0% 88%; /* Light Grey (Input Borders) */
-    --ring: 80 25% 42%; /* Slightly Brighter Olive (Focus Rings) */
-
-    --radius: 0.75rem; /* Default radius. Image suggests moderate rounding. */
-
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 80 25% 42%;
+    --radius: 0.75rem;
     --chart-1: 80 25% 38%;
     --chart-2: 80 20% 50%;
     --chart-3: 70 20% 60%;
     --chart-4: 60 15% 70%;
     --chart-5: 0 0% 80%;
-
-    /* Sidebar specific theme variables */
-    --sidebar-background: 0 0% 96%; /* Off-White - same as card */
-    --sidebar-foreground: 0 0% 25%; /* Dark Grey Text */
-    --sidebar-primary: 55 36% 63%; /* Gold/Khaki for active item BG (from image) */
-    --sidebar-primary-foreground: 0 0% 25%; /* Dark Text for active item (from image) */
-    --sidebar-accent: 80 25% 45%; /* Olive for hover on non-active sidebar items */
-    --sidebar-accent-foreground: 60 50% 97%; /* Light text for hover on non-active */
-    --sidebar-border: 0 0% 88%; /* Light Grey */
-    --sidebar-ring: 80 25% 42%; /* Olive */
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-primary: 55 36% 63%;
+    --sidebar-primary-foreground: 0 0% 25%;
+    --sidebar-accent: 80 25% 45%;
+    --sidebar-accent-foreground: 60 50% 97%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 80 25% 42%;
   }
 
   .dark {
-    /* Basic dark mode adjustments - can be refined if dark mode is a priority */
     --background: 220 15% 10%;
     --foreground: 0 0% 90%;
-
     --card: 220 15% 15%;
     --card-foreground: 0 0% 90%;
-
     --popover: 220 15% 15%;
     --popover-foreground: 0 0% 90%;
-
     --primary: 80 30% 55%;
     --primary-foreground: 0 0% 10%;
-
     --secondary: 220 15% 25%;
     --secondary-foreground: 80 30% 55%;
-
     --muted: 220 15% 20%;
     --muted-foreground: 0 0% 60%;
-
     --accent: 80 30% 55%;
     --accent-foreground: 0 0% 10%;
-
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 220 15% 30%;
     --input: 220 15% 30%;
     --ring: 80 30% 55%;
-
-    /* Dark Sidebar specific theme variables */
     --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 55 30% 50%; /* Darker Gold/Khaki */
-    --sidebar-primary-foreground: 0 0% 95%; /* Lighter text for dark active */
+    --sidebar-primary: 55 30% 50%;
+    --sidebar-primary-foreground: 0 0% 95%;
     --sidebar-accent: 80 25% 50%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 220 15% 25%;
@@ -103,17 +79,4 @@
     @apply bg-background text-foreground;
     font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-}
-
-/* Custom rounded-2xl based on radius variable */
-.rounded-2xl {
-  border-radius: 1.125rem; /* Effectively calc(0.75rem * 1.5) */
 }
