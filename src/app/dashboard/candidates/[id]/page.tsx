@@ -14,7 +14,7 @@ import { use, useState, useEffect } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText, MessageCircleMore, ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/context/candidate-context"; // Changed import from lib/mock-data
+import type { UnifiedCandidate } from "@/context/candidate-context"; 
 
 interface CandidateProfilePageProps {
   params: Promise<{ id: string }>; 
@@ -62,9 +62,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
       return;
     }
-    if (!hasProfileLinks) {
-        toast({ title: "No Profile Links Detected", description: "Resume content does not seem to contain direct links or text references to LinkedIn, GitHub, or Naukri. Discovery may be limited.", variant: "default" });
-    }
+    // Removed direct dependency on hasProfileLinks for enabling the button logic,
+    // but the description text will guide the user.
     setIsLoadingDiscovery(true);
     try {
       const result = await profileDiscovery({ name: candidate.name, email: candidate.email });
@@ -196,7 +195,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
-                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery || !hasProfileLinks} size="sm" variant="outline" className="rounded-lg">
+                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery} size="sm" variant="outline" className="rounded-lg">
                   {isLoadingDiscovery ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                   {isLoadingDiscovery ? "Searching..." : "Run Discovery"}
                 </Button>
@@ -214,11 +213,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{profileDiscoveryResult.summary}</p>
                 </div>
               )}
-              {!isLoadingDiscovery && !profileDiscoveryResult && !hasProfileLinks &&
-                <p className="text-sm text-muted-foreground">The resume text does not appear to contain links or text references to LinkedIn, GitHub, or Naukri. Profile Discovery may be limited but will attempt search based on name/email. Click "Run Discovery" to proceed.</p>
-              }
-              {!isLoadingDiscovery && !profileDiscoveryResult && hasProfileLinks &&
-                <p className="text-sm text-muted-foreground">Click "Run Discovery" to fetch and summarize online profile data.</p>
+              {!isLoadingDiscovery && !profileDiscoveryResult &&
+                <p className="text-sm text-muted-foreground">Click "Run Discovery" to fetch and summarize online profile data. Effectiveness increases if resume text contains links or references to LinkedIn, GitHub, or Naukri.</p>
               }
             </CardContent>
           </Card>
@@ -311,5 +307,3 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     </div>
   );
 }
-
-    

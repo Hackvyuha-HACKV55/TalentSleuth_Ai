@@ -13,7 +13,7 @@ import { Loader2, HelpCircle, ListChecks, Lightbulb, UserSearch } from "lucide-r
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCandidateContext } from "@/context/candidate-context";
-import type { UnifiedCandidate } from "@/lib/mock-data";
+import type { UnifiedCandidate } from "@/context/candidate-context"; // Updated import
 
 export default function InterviewPrepPage() {
   const { candidates } = useCandidateContext();
@@ -76,7 +76,7 @@ export default function InterviewPrepPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-3xl">
+    <div className="space-y-8 w-full max-w-3xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <HelpCircle className="mr-3 h-8 w-8 text-primary" />

@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy } from "firebase/firestore";
+import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore"; // Added updateDoc
 import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCandidateContext, type UnifiedCandidate } from "@/context/candidate-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Label } from "@/components/ui/label"; // Added import for Label
+import { Label } from "@/components/ui/label";
 
 interface JobRequisition extends DocumentData {
   id: string;
@@ -148,11 +148,12 @@ export default function JobRequisitionDetailPage() {
             candidateId: selectedCandidate.id,
             candidateName: selectedCandidate.name,
             applicationDate: serverTimestamp(),
-            status: "Applied"
+            status: "Applied" // Default status
         });
+        
         // Optimistically add or re-fetch applicants
         const newApplicantData: JobApplication = {
-            id: newApplicationRef.id, // Placeholder, actual ID from ref
+            id: newApplicationRef.id, 
             jobId: job.id,
             jobTitle: job.title,
             candidateId: selectedCandidate.id,
@@ -160,9 +161,9 @@ export default function JobRequisitionDetailPage() {
             applicationDate: Timestamp.now(), // Approximate, server will set final
             status: "Applied"
         };
-        setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]); // Avoid duplicates if re-fetched quickly
+        setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]);
 
-        // Re-fetch applicants to get accurate data
+        // Re-fetch applicants to get accurate data (optional, but good for consistency)
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
@@ -197,10 +198,10 @@ export default function JobRequisitionDetailPage() {
     switch (status) {
       case "Applied": return "default";
       case "Screening": return "secondary";
-      case "Interviewing": return "default"; // You might want a different color for 'Interviewing', e.g., primary
-      case "Offered": return "default"; // Or success green
+      case "Interviewing": return "default"; 
+      case "Offered": return "default"; 
       case "Rejected": return "destructive";
-      case "Hired": return "default"; // Or success green
+      case "Hired": return "default"; 
       default: return "outline";
     }
   };
@@ -232,7 +233,7 @@ export default function JobRequisitionDetailPage() {
   }
 
   const DetailItem = ({ label, value, isHtml = false }: { label: string; value?: string | React.ReactNode; isHtml?: boolean }) => {
-    if (!value && typeof value !== 'number') return null; // Allow 0 to be displayed
+    if (!value && typeof value !== 'number') return null; 
     return (
       <div className="py-3">
         <h3 className="text-sm font-medium text-muted-foreground mb-0.5">{label}</h3>

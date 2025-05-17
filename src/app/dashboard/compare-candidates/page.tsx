@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCandidateContext } from "@/context/candidate-context";
 import { ArrowRight, Loader2, UsersRound, Columns } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/lib/mock-data";
+import type { UnifiedCandidate } from "@/context/candidate-context"; // Updated import
 
 export default function CompareCandidatesPage() {
   const { candidates, loadingCandidates } = useCandidateContext();
@@ -21,7 +21,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-6xl"> 
+    <div className="space-y-8 w-full max-w-7xl mx-auto"> 
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />

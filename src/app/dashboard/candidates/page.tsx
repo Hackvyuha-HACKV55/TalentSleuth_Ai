@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useCandidateContext } from "@/context/candidate-context"; 
-import type { UnifiedCandidate } from "@/lib/mock-data";
+import type { UnifiedCandidate } from "@/context/candidate-context"; // Changed from lib/mock-data
 
 export default function CandidatesListPage() {
   const { candidates, loadingCandidates } = useCandidateContext(); 
@@ -25,7 +25,7 @@ export default function CandidatesListPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-7xl">
+    <div className="space-y-8 w-full max-w-7xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Candidates</h1>
         <p className="text-muted-foreground">Browse and manage your talent pool from the central database.</p>
