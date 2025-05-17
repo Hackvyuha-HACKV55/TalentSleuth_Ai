@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore"; // Added updateDoc
+import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore"; 
 import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -134,7 +134,6 @@ export default function JobRequisitionDetailPage() {
         return;
     }
 
-    // Check if candidate already applied
     if (applicants.some(app => app.candidateId === selectedCandidateId)) {
         toast({ title: "Already Applied", description: `${selectedCandidate.name} has already been added as an applicant for this job.`, variant: "default" });
         return;
@@ -148,22 +147,20 @@ export default function JobRequisitionDetailPage() {
             candidateId: selectedCandidate.id,
             candidateName: selectedCandidate.name,
             applicationDate: serverTimestamp(),
-            status: "Applied" // Default status
+            status: "Applied" 
         });
         
-        // Optimistically add or re-fetch applicants
         const newApplicantData: JobApplication = {
             id: newApplicationRef.id, 
             jobId: job.id,
             jobTitle: job.title,
             candidateId: selectedCandidate.id,
             candidateName: selectedCandidate.name,
-            applicationDate: Timestamp.now(), // Approximate, server will set final
+            applicationDate: Timestamp.now(), 
             status: "Applied"
         };
         setApplicants(prev => [newApplicantData, ...prev.filter(app => app.id !== newApplicationRef.id)]);
 
-        // Re-fetch applicants to get accurate data (optional, but good for consistency)
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
@@ -171,7 +168,7 @@ export default function JobRequisitionDetailPage() {
 
 
         toast({ title: "Applicant Added", description: `${selectedCandidate.name} added as an applicant for ${job.title}.` });
-        setSelectedCandidateId(undefined); // Reset select
+        setSelectedCandidateId(undefined); 
     } catch (error) {
         console.error("Error adding applicant:", error);
         toast({ title: "Error", description: "Could not add applicant.", variant: "destructive" });
@@ -248,7 +245,7 @@ export default function JobRequisitionDetailPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-4xl mx-auto">
+    <div className="space-y-8 w-full max-w-4xl">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -265,7 +262,7 @@ export default function JobRequisitionDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Jobs List
             </Link>
           </Button>
-           <Button variant="default" className="rounded-lg" disabled> {/* Placeholder for edit */}
+           <Button variant="default" className="rounded-lg" disabled> 
             <Edit className="mr-2 h-4 w-4" /> Edit Job (Soon)
           </Button>
         </div>
@@ -334,7 +331,7 @@ export default function JobRequisitionDetailPage() {
             ) : applicants.length > 0 ? (
                  <div className="border rounded-lg overflow-hidden">
                     <Table>
-                        <TableHeader className="bg-muted/50">
+                        <TableHeader className="bg-card/50"> 
                         <TableRow>
                             <TableHead>Candidate Name</TableHead>
                             <TableHead>Application Date</TableHead>

@@ -17,7 +17,7 @@ interface JobRequisition extends DocumentData {
   title: string;
   location: string;
   status: "Open" | "Closed" | "Draft";
-  createdAt: Date; // Assuming you'll store a timestamp
+  createdAt: Date; 
 }
 
 export default function JobRequisitionsPage() {
@@ -40,7 +40,6 @@ export default function JobRequisitionsPage() {
             title: data.title,
             location: data.location,
             status: data.status,
-            // Convert Firestore Timestamp to Date if necessary
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
           } as JobRequisition);
         });
@@ -62,7 +61,7 @@ export default function JobRequisitionsPage() {
   const getStatusBadgeVariant = (status: JobRequisition['status']) => {
     switch (status) {
       case "Open":
-        return "default"; // Or a specific 'success' or 'open' variant if defined
+        return "default"; 
       case "Closed":
         return "destructive";
       case "Draft":
@@ -73,7 +72,7 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-5xl mx-auto">
+    <div className="space-y-8 w-full max-w-5xl">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
@@ -107,7 +106,7 @@ export default function JobRequisitionsPage() {
           ) : jobs.length > 0 ? (
             <div className="border rounded-lg overflow-hidden">
             <Table>
-              <TableHeader className="bg-muted/50">
+              <TableHeader className="bg-card/50"> 
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Location</TableHead>
@@ -129,7 +128,6 @@ export default function JobRequisitionsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" asChild className="rounded-md">
-                        {/* Link to a future edit page or view page */}
                         <Link href={`/dashboard/ats/jobs/${job.id}`}> 
                           View/Edit <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                         </Link>

@@ -62,8 +62,6 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
       return;
     }
-    // Removed direct dependency on hasProfileLinks for enabling the button logic,
-    // but the description text will guide the user.
     setIsLoadingDiscovery(true);
     try {
       const result = await profileDiscovery({ name: candidate.name, email: candidate.email });
@@ -154,9 +152,9 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayPhone = candidate.phone || "Phone not available";
 
   return (
-    <div className="space-y-8 w-full max-w-5xl mx-auto">
+    <div className="space-y-8 w-full max-w-5xl">
       <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
-        <CardHeader className="bg-secondary/50 p-6">
+        <CardHeader className="bg-card/50 p-6"> 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
               <AvatarImage src={candidate.avatarUrl?.replace('80x80', '120x120') || `https://placehold.co/120x120.png?text=${getInitials(displayName)}`} alt={displayName} data-ai-hint="person professional portrait"/>
@@ -195,26 +193,29 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
-                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery} size="sm" variant="outline" className="rounded-lg">
+                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery || !hasProfileLinks} size="sm" variant="outline" className="rounded-lg">
                   {isLoadingDiscovery ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                   {isLoadingDiscovery ? "Searching..." : "Run Discovery"}
                 </Button>
               </div>
                <CardDescription className="text-xs text-muted-foreground mt-1">
                 AI simulates searching for the candidate's online presence (e.g., LinkedIn, GitHub, Naukri). 
-                Most effective if the resume includes direct links or text references to these platforms. Analysis proceeds using name/email even with plain text references.
+                This feature is most effective if the candidate's resume includes URLs or specific text references to these platforms.
+                {!hasProfileLinks && " (No direct platform links detected in resume.)"}
                </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
               {profileDiscoveryResult && (
-                <div className="p-4 bg-secondary rounded-md">
+                <div className="p-4 bg-card/80 rounded-md"> 
                   <h4 className="font-semibold text-foreground mb-1">AI Summary:</h4>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{profileDiscoveryResult.summary}</p>
                 </div>
               )}
               {!isLoadingDiscovery && !profileDiscoveryResult &&
-                <p className="text-sm text-muted-foreground">Click "Run Discovery" to fetch and summarize online profile data. Effectiveness increases if resume text contains links or references to LinkedIn, GitHub, or Naukri.</p>
+                <p className="text-sm text-muted-foreground">Click "Run Discovery" to attempt to fetch and summarize online profile data. 
+                {hasProfileLinks ? "Platform links/references detected in resume." : "Effectiveness may be limited if no direct platform links or references are present in the resume."}
+                </p>
               }
             </CardContent>
           </Card>

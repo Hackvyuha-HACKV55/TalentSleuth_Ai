@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCandidateContext } from "@/context/candidate-context";
 import { ArrowRight, Loader2, UsersRound, Columns } from "lucide-react";
 import Link from "next/link";
-import type { UnifiedCandidate } from "@/context/candidate-context"; // Updated import
+import type { UnifiedCandidate } from "@/context/candidate-context"; 
 
 export default function CompareCandidatesPage() {
   const { candidates, loadingCandidates } = useCandidateContext();
@@ -21,7 +21,7 @@ export default function CompareCandidatesPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-7xl mx-auto"> 
+    <div className="space-y-8 w-full max-w-7xl"> 
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Columns className="mr-3 h-8 w-8 text-primary" />
@@ -40,7 +40,7 @@ export default function CompareCandidatesPage() {
       ) : candidates.length > 0 ? (
         <div className="border rounded-lg shadow-md overflow-x-auto"> 
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader className="bg-card/50"> 
               <TableRow>
                 <TableHead className="w-[80px]">Avatar</TableHead>
                 <TableHead>Name</TableHead>
@@ -58,7 +58,7 @@ export default function CompareCandidatesPage() {
                   <TableCell>
                     <Avatar className="h-10 w-10 border">
                       <AvatarImage src={candidate.avatarUrl || `https://placehold.co/60x60.png?text=${getInitials(candidate.name)}`} alt={candidate.name || "Candidate"} data-ai-hint="person professional" />
-                      <AvatarFallback>{getInitials(candidate.name)}</AvatarFallback>
+                      <AvatarFallback className="bg-muted text-primary font-semibold">{getInitials(candidate.name)}</AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-medium text-foreground whitespace-nowrap">{candidate.name}</TableCell> 

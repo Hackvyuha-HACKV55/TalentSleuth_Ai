@@ -41,7 +41,7 @@ export default function DashboardOverviewPage() {
 
 
   return (
-    <div className="space-y-8 w-full max-w-6xl mx-auto">
+    <div className="space-y-8 w-full max-w-6xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -75,7 +75,7 @@ export default function DashboardOverviewPage() {
         />
         <StatCard
             title="Job Descriptions"
-            value={"N/A"} // Placeholder - needs actual data
+            value={"N/A"} 
             icon={ClipboardList}
             description="Active job postings"
         />

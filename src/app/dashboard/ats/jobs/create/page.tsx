@@ -43,7 +43,7 @@ export default function CreateJobRequisitionPage() {
         location,
         salary,
         status,
-        createdAt: serverTimestamp(), // Automatically set server-side timestamp
+        createdAt: serverTimestamp(), 
       });
       toast({
         title: "Job Requisition Created",
@@ -63,7 +63,7 @@ export default function CreateJobRequisitionPage() {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-3xl mx-auto">
+    <div className="space-y-8 w-full max-w-3xl">
        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center">
           <Briefcase className="mr-3 h-8 w-8 text-primary" />
