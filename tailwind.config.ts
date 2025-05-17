@@ -64,7 +64,8 @@ export default {
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 0.125rem)',
-  			sm: 'calc(var(--radius) - 0.25rem)'
+  			sm: 'calc(var(--radius) - 0.25rem)',
+        '2xl': 'calc(var(--radius) * 1.25)', // For more pronounced rounding on specific cards
   		},
   		keyframes: {
   			'accordion-down': {
