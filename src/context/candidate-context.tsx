@@ -9,11 +9,23 @@ import { db } from "@/lib/firebase"; // Import Firestore instance
 import { collection, doc, setDoc, getDocs, deleteDoc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
+export interface UnifiedCandidate extends ParseResumeOutput { // Exporting this for use in other files
+  id: string;
+  role?: string;
+  avatarUrl?: string;
+  resumeOriginalDataUri?: string; 
+  resumeTextContent: string; 
+  topSkill?: string; 
+  fitScore?: number;
+  justification?: string; // Added justification field
+}
+
+
 interface CandidateContextType {
   candidates: UnifiedCandidate[];
   addCandidate: (parsedData: ParseResumeOutput, resumeOriginalDataUri: string) => Promise<UnifiedCandidate | null>;
   getCandidateById: (id: string) => UnifiedCandidate | undefined;
-  updateCandidateFitScore: (id: string, fitScore: number, justification?: string) => void; // Keep this local for now or extend to Firestore
+  updateCandidateFitScore: (id: string, fitScore: number, justification?: string) => void; 
   deleteCandidate: (id: string) => Promise<void>;
   loadingCandidates: boolean;
 }
@@ -25,19 +37,16 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
   const [loadingCandidates, setLoadingCandidates] = useState(true);
   const { toast } = useToast();
 
-  // Fetch candidates from Firestore on mount
   useEffect(() => {
     const fetchCandidates = async () => {
       setLoadingCandidates(true);
       try {
         const candidatesCollectionRef = collection(db, "candidates");
-        // Optionally, order by a field if you add a timestamp later, e.g., query(candidatesCollectionRef, orderBy("createdAt", "desc"))
-        const querySnapshot = await getDocs(candidatesCollectionRef);
+        const q = query(candidatesCollectionRef, orderBy("name")); // Order by name for consistent listing
+        const querySnapshot = await getDocs(q);
         const fetchedCandidates: UnifiedCandidate[] = [];
         querySnapshot.forEach((doc) => {
-          // It's good practice to ensure the data matches the type
           const data = doc.data();
-          // Ensure all required fields are present, especially if schema varies
           const candidate: UnifiedCandidate = {
             id: doc.id,
             name: data.name || "N/A",
@@ -62,14 +71,9 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error fetching candidates from Firestore:", error);
         toast({
           title: "Error Fetching Data",
-          description: "Could not load candidate data from the database. Displaying initial mock data.",
+          description: "Could not load candidate data from the database.",
           variant: "destructive",
         });
-        // Fallback to mock data if Firestore fetch fails or is empty for the first time
-        // This could be removed if you only want to rely on Firestore
-        if (candidates.length === 0 && initialMockCandidates.length > 0) {
-           // setCandidates(initialMockCandidates); // Or decide if you want to seed Firestore with mock data once
-        }
       } finally {
         setLoadingCandidates(false);
       }
@@ -77,16 +81,10 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
 
     fetchCandidates();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array means this runs once on mount
+  }, []); 
 
   const addCandidate = useCallback(async (parsedData: ParseResumeOutput, resumeOriginalDataUri: string): Promise<UnifiedCandidate | null> => {
-    // Generate a new ID (could also use Firestore's auto-generated IDs if preferred)
-    // For consistency with delete by specific ID, generating it client-side is fine
-    // This ID generation logic needs to be robust if multiple users add candidates concurrently
-    // A truly unique ID from Firestore (e.g. const newDocRef = doc(collection(db, "candidates")); newId = newDocRef.id;)
-    // is safer in multi-user scenarios before setDoc.
-    // For simplicity, we'll keep client-generated ID for now.
-    const newId = doc(collection(db, "temp_ids")).id; // Firestore auto-ID for uniqueness
+    const newId = doc(collection(db, "temp_ids")).id; 
 
     const initials = (parsedData.name || "New Candidate")
       .split(' ')
@@ -99,19 +97,18 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
 
     const newCandidate: UnifiedCandidate = {
       ...parsedData,
-      id: newId, // Use the Firestore-generated unique ID
+      id: newId, 
       avatarUrl: `https://placehold.co/80x80.png?text=${initials}`,
       role: parsedData.experience?.split('\n')[0]?.trim() || "Role not specified", 
       topSkill: parsedData.skills?.split(',')[0]?.trim() || "Skill not specified", 
       resumeOriginalDataUri,
       resumeTextContent, 
-      // fitScore and justification would typically be added later
     };
 
     try {
       const candidateDocRef = doc(db, "candidates", newCandidate.id);
       await setDoc(candidateDocRef, newCandidate);
-      setCandidates(prevCandidates => [newCandidate, ...prevCandidates]); // Add to start of list for visibility
+      setCandidates(prevCandidates => [newCandidate, ...prevCandidates].sort((a, b) => (a.name || "").localeCompare(b.name || ""))); // Keep sorted
       toast({
         title: "Candidate Added",
         description: `${newCandidate.name} has been successfully saved to the database.`,
@@ -132,25 +129,32 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
     return candidates.find(candidate => candidate.id === id);
   }, [candidates]);
 
-  const updateCandidateFitScore = useCallback((id: string, fitScore: number, justification?: string) => {
-    // This updates local state. To persist, also update Firestore here.
-    // For now, keeping it simple and only updating local state.
-    // Example for Firestore update:
-    // const candidateDocRef = doc(db, "candidates", id);
-    // await updateDoc(candidateDocRef, { fitScore, justification });
-    setCandidates(prevCandidates =>
-      prevCandidates.map(c =>
-        c.id === id ? { ...c, fitScore, justification } : c 
-      )
-    );
-    // Optionally, inform the user that the local view has been updated.
-    // toast({ title: "Fit Score Updated (Locally)", description: `Score for candidate ${id} updated.` });
-  }, []);
+  const updateCandidateFitScore = useCallback(async (id: string, fitScore: number, justification?: string) => {
+    try {
+        const candidateDocRef = doc(db, "candidates", id);
+        await setDoc(candidateDocRef, { fitScore, justification }, { merge: true }); // Use setDoc with merge:true to update or create
+        setCandidates(prevCandidates =>
+          prevCandidates.map(c =>
+            c.id === id ? { ...c, fitScore, justification } : c 
+          )
+        );
+        // toast({ title: "Fit Score Updated", description: `Score for candidate ${id} saved to database.` });
+      } catch (error) {
+        console.error("Error updating fit score in Firestore:", error);
+        toast({
+          title: "Database Error",
+          description: `Failed to save fit score for candidate ${id}.`,
+          variant: "destructive",
+        });
+      }
+  }, [toast]);
 
   const deleteCandidate = useCallback(async (id: string) => {
     const candidateToDelete = candidates.find(c => c.id === id);
     const candidateName = candidateToDelete?.name || "The candidate";
     try {
+      // Before deleting candidate, consider if you need to delete related jobApplications
+      // For now, this is not implemented to keep it simpler. In a real app, you'd handle cascading deletes or cleanup.
       const candidateDocRef = doc(db, "candidates", id);
       await deleteDoc(candidateDocRef);
       setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== id));
@@ -183,3 +187,5 @@ export const useCandidateContext = (): CandidateContextType => {
   }
   return context;
 };
+
+    
