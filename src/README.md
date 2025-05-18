@@ -1,7 +1,7 @@
 
 # TalentSleuth AI - Your Virtual Talent Analyst
 
-TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams and assist job seekers in finding opportunities. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition. Candidate data, job requisitions, and applications are persistently stored using Firebase Firestore. Students can view and apply for open positions, including uploading their resumes during signup for automated profile creation.
+TalentSleuth AI is an intelligent platform designed to streamline the hiring process for HR teams and assist job seekers in finding opportunities. It leverages AI to parse resumes, discover candidate profiles, assess role fitment, detect potential red flags, and generate interview questions, providing a comprehensive toolkit for talent acquisition. Candidate data, job requisitions, and applications are persistently stored using Firebase Firestore. Students can view and apply for open positions, including uploading their resumes during signup for automated profile creation and generating custom resumes for specific jobs.
 
 ## Core Features
 
@@ -13,15 +13,20 @@ TalentSleuth AI is an intelligent platform designed to streamline the hiring pro
 *   **AI Role Fitment Matching:** Upload a job description and select a candidate to get an AI-generated fitment score (0-100) and justification. Scores are updated in the candidate's Firestore record.
 *   **AI Interview Question Generator:** Generate tailored interview questions based on job title and candidate skills. Can auto-fill details by selecting an existing candidate from the database.
 *   **Side-by-Side Candidate Comparison:** A dashboard to compare key details of multiple candidates (recruiter-side).
-*   **Basic ATS - Job Requisition Management:** Recruiters can create, view, and manage job postings (title, description, location, salary, status), stored in Firestore.
-*   **Basic ATS - Candidate Application Tracking:** Recruiters can assign existing candidates to jobs.
+*   **Basic ATS - Job Requisition Management:** Recruiters can create, view, and manage job postings (title, description, location, salary, status), stored in Firestore. (Editing job requisitions is planned).
+*   **Basic ATS - Candidate Application Tracking:**
+    *   Recruiters can assign existing candidates to jobs.
+    *   Recruiters can view all job applications and update their status (Applied, Screening, Interviewing, Offered, Hired, Rejected).
 *   **Student Job Portal & Application System:**
-    *   Students can sign up, providing their name, email, and resume.
+    *   Students can sign up, providing their name, email, password, and resume.
     *   On signup, the resume is uploaded to **Firebase Storage**, parsed by AI, and a candidate profile is created/updated in Firestore with a `resumeUrl` (to the stored file) and structured `digitalResume` data.
     *   Students can view open job requisitions.
-    *   Students can apply for jobs (currently using their profile resume; custom resume generation is planned).
-    *   An application record linking the student and job is created in Firestore.
-*   **User Authentication:** Secure sign-up, login, and password reset functionality for both recruiters (dashboard access) and students (portal access) using Firebase Authentication.
+    *   Students can apply for jobs using:
+        *   Their main profile resume (can be updated during application if a new file is uploaded).
+        *   A **custom-generated resume**: AI generates a resume tailored to the specific job description using the student's `digitalResume` data. This custom resume text is saved to the student's profile (under `candidates/{uid}/customResumes/{jobId}`) and included in the job application record.
+    *   An application record linking the student and job is created in Firestore, indicating if a profile or custom resume was used.
+    *   Students can view their profile, download their main resume, see their application statuses, and view their saved custom resumes.
+*   **User Authentication:** Secure sign-up, login for both recruiters (dashboard access) and students (portal access) using Firebase Authentication.
 *   **Candidate Deletion:** Ability for recruiters to delete candidate profiles from Firestore.
 
 ## Planned ATS Features (Future Development)
@@ -37,9 +42,8 @@ The application aims to expand its ATS capabilities by integrating with Google W
     *   **Drive API Integration**: Automatically store and organize resume files.
 
 ### 3. **Candidate Application Tracking (Enhanced)**
-    *   Track candidate applications per job requisition with more detailed status updates (Screening, Interviewing, Offered, Hired, Rejected).
-    *   UI to update application statuses.
-    *   Students can apply with their main profile resume or a dynamically generated, ATS-friendly resume tailored to the job description (AI-powered).
+    *   More detailed status updates and UI.
+    *   (Partially Implemented: Recruiters can update status).
 
 ### 4. **Interview Scheduling & Virtual Meetings (Google Calendar + Meet)**
     *   **Calendar API**: Schedule interviews, check availability.
@@ -80,7 +84,7 @@ The application aims to expand its ATS capabilities by integrating with Google W
         *   `@genkit-ai/googleai` plugin for Google Gemini.
     *   **Google Gemini Pro (via `gemini-1.5-flash-latest` model):** Leveraged for generative AI tasks.
 -   **Database & Storage:**
-    *   **Firebase Firestore:** NoSQL cloud database for storing and syncing candidate data, job requisitions, and job applications.
+    *   **Firebase Firestore:** NoSQL cloud database for storing and syncing candidate data, job requisitions, and job applications (including custom resume text).
     *   **Firebase Storage:** For storing uploaded resume files.
 -   **Authentication:**
     *   **Firebase Authentication:** Manages user sign-up, login, and session management for recruiters and students.
@@ -110,220 +114,159 @@ talentsleuth-ai/
 │   │       ├── resume-parsing.ts
 │   │       ├── role-matching.ts
 │   │       ├── interview-question-generator.ts
-│   │       └── sentiment-analysis.ts
+│   │       ├── sentiment-analysis.ts
+│   │       └── generate-custom-resume.ts # New Flow
 │   ├── app/              # Next.js App Router directory
-│   │   ├── (auth)/         # Recruiter authentication pages (login, signup, forgot-password)
+│   │   ├── (auth)/         # Recruiter authentication pages
 │   │   ├── dashboard/      # Main application dashboard routes (for recruiters)
 │   │   │   ├── ats/        # Applicant Tracking System features
-│   │   │   │   └── jobs/
-│   │   │   │       ├── create/page.tsx  # Create new job requisition
-│   │   │   │       ├── [id]/page.tsx    # View job requisition & applicants
-│   │   │   │       └── page.tsx         # List job requisitions
+│   │   │   │   ├── jobs/
+│   │   │   │   │   ├── create/page.tsx
+│   │   │   │   │   ├── [id]/page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── applications/page.tsx # View all applications
 │   │   │   ├── candidates/
-│   │   │   │   ├── [id]/page.tsx # Candidate detail page
-│   │   │   │   └── page.tsx      # Candidate listing page
+│   │   │   │   ├── [id]/page.tsx
+│   │   │   │   └── page.tsx
 │   │   │   ├── compare-candidates/page.tsx
 │   │   │   ├── upload-jd/page.tsx
 │   │   │   ├── upload-resume/page.tsx
 │   │   │   ├── interview-prep/page.tsx
 │   │   │   ├── settings/page.tsx
 │   │   │   ├── layout.tsx
-│   │   │   └── page.tsx      # Dashboard overview
+│   │   │   └── page.tsx
 │   │   ├── student/          # Student-facing portal
-│   │   │   ├── (auth)/       # Student authentication pages (login, signup)
+│   │   │   ├── (auth)/       # Student authentication pages
 │   │   │   │   ├── login/page.tsx
 │   │   │   │   └── signup/page.tsx
-│   │   │   ├── jobs/page.tsx # Page for students to view and apply for jobs
-│   │   │   └── layout.tsx    # Layout for student portal
-│   │   ├── globals.css     # Global styles and Tailwind directives
-│   │   ├── layout.tsx      # Root layout
-│   │   └── page.tsx        # Landing page
+│   │   │   ├── jobs/page.tsx       # Page for students to view and apply for jobs
+│   │   │   ├── profile/page.tsx    # Student profile page
+│   │   │   └── layout.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
 │   ├── components/
-│   │   ├── domain/         # Application-specific components (CandidateCard, ResumeUploader)
-│   │   ├── layout/         # Layout components (Navbar, Footer, DashboardSidebarNav)
-│   │   └── ui/             # ShadCN UI components (Button, Card, etc.)
-│   ├── context/            # React Context API providers
+│   │   ├── domain/
+│   │   ├── layout/
+│   │   └── ui/
+│   ├── context/
 │   │   ├── auth-context.tsx
-│   │   └── candidate-context.tsx # Manages candidate data with Firestore sync
-│   ├── hooks/              # Custom React hooks
-│   │   ├── use-mobile.tsx
-│   │   └── use-toast.ts
-│   ├── lib/                # Utility functions and configurations
-│   │   ├── firebase.ts     # Firebase initialization (Auth, Firestore, Storage)
-│   │   ├── mock-data.ts    # (Not primary data source; Firestore is)
-│   │   └── utils.ts        # General utility functions (e.g., cn for Tailwind)
-├── tailwind.config.ts    # Tailwind CSS configuration
-└── tsconfig.json         # TypeScript configuration
+│   │   └── candidate-context.tsx
+│   ├── hooks/
+│   ├── lib/
+│   │   ├── firebase.ts
+│   │   ├── mock-data.ts
+│   │   └── utils.ts
+├── tailwind.config.ts
+└── tsconfig.json
 ```
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
--   **Node.js:** Version 18.x or 20.x is recommended. You can download it from [nodejs.org](https://nodejs.org/).
--   **npm** (comes with Node.js) or **yarn** (optional, install via `npm install -g yarn`).
--   **Google Gemini API Key:** You need an API key from Google AI Studio to use the AI features. Get one [here](https://aistudio.google.com/app/apikey). Store this as `GOOGLE_API_KEY` in your `.env` file.
+-   **Node.js:** Version 18.x or 20.x is recommended.
+-   **npm** or **yarn**.
+-   **Google Gemini API Key:** Store as `GOOGLE_API_KEY` in `.env`.
 -   **Firebase Project:**
-    *   Create a Firebase project at [firebase.google.com](https://firebase.google.com/).
-    *   Enable **Authentication** (Email/Password sign-in method).
-    *   Enable **Firestore Database** in your Firebase project. Start in test mode for easy setup (but configure security rules for production).
-    *   Enable **Firebase Storage** for resume file uploads.
--   **(Optional for planned ATS features) Google Cloud Project & API Keys:**
-    *   For planned features like Google Drive, Gmail, Calendar, and Meet integration, you'll need a Google Cloud Platform project with these APIs enabled.
-    *   You'll also need to generate API keys or OAuth 2.0 credentials for these services. Store these in your `.env` file (e.g., `GOOGLE_DRIVE_API_KEY`, `GOOGLE_GMAIL_API_KEY`, etc.).
-    *   **Securely manage these credentials.**
+    *   Enable **Authentication** (Email/Password).
+    *   Enable **Firestore Database**.
+    *   Enable **Firebase Storage**.
+-   **(Optional for planned ATS features) Google Cloud Project & API Keys.**
 
 ## Setup and Running Locally
 
-Follow these steps to get the project running on your local machine:
-
-1.  **Download and Extract:**
-    Download the project files (e.g., as a ZIP) and extract them to a folder on your computer.
-
-2.  **Navigate to Project Directory:**
-    Open your terminal or command prompt and navigate into the project's root folder:
-    ```bash
-    cd path/to/your/talentsleuth-ai-folder
+1.  **Download and Extract** project files.
+2.  **Navigate to Project Directory** via terminal.
+3.  **Install Dependencies:** `npm install` or `yarn install`.
+4.  **Configure Firebase (`src/lib/firebase.ts`):** Ensure `firebaseConfig` matches your project, especially `storageBucket`.
+5.  **Set Up Environment Variables (`.env` file):**
+    ```env
+    GOOGLE_API_KEY=your_actual_gemini_api_key_here
+    # Optional Google Workspace Keys (for planned features)
+    GOOGLE_DRIVE_API_KEY=
+    GOOGLE_MEET_API_KEY=
+    GOOGLE_CALENDAR_API_KEY=
+    GOOGLE_GMAIL_API_KEY=
     ```
-
-3.  **Install Dependencies:**
-    The `package.json` file lists all necessary dependencies. Install them using npm or yarn:
-    ```bash
-    npm install
-    ```
-    or
-    ```bash
-    yarn install
-    ```
-    This command reads `package.json` and downloads the required packages into the `node_modules` folder.
-
-4.  **Configure Firebase:**
-    *   Open `src/lib/firebase.ts`.
-    *   The `firebaseConfig` object should already contain your project's configuration if you've been working with it. If it's a fresh download, replace the placeholder `firebaseConfig` object with your actual Firebase project's configuration. You can find this in your Firebase project settings (Project settings > General > Your apps > Web app > SDK setup and configuration > Config).
-    *   Ensure your Storage bucket URL in `firebaseConfig` (e.g., `storageBucket: "your-project-id.appspot.com"`) is correct.
-
-5.  **Set Up Environment Variables:**
-    *   Create a new file named `.env` in the root directory of the project (if it doesn't exist).
-    *   Add your **Google Gemini API Key**:
-        ```env
-        GOOGLE_API_KEY=your_actual_gemini_api_key_here
-        ```
-    *   Add the API keys for **Google Workspace APIs** if you have them (needed for planned ATS features):
-        ```env
-        # Example keys - replace with your actual, secured keys for production
-        GOOGLE_DRIVE_API_KEY=your_drive_api_key_if_you_have_one
-        GOOGLE_MEET_API_KEY=your_meet_api_key_if_you_have_one
-        GOOGLE_CALENDAR_API_KEY=your_calendar_api_key_if_you_have_one
-        GOOGLE_GMAIL_API_KEY=your_gmail_api_key_if_you_have_one
-        ```
-        Replace placeholders with your actual keys. **Remember the security implications of handling these keys.**
-
-6.  **Firebase Security Rules (Important for Firestore & Storage):**
+6.  **Firebase Security Rules (CRUCIAL):**
     *   Go to your Firebase Console -> Firestore Database -> Rules.
-    *   **For the Student Job Portal to work correctly (allowing anyone to view open jobs, and students to apply), and for recruiters to manage data, you need appropriate rules.**
-    *   **Example Firestore Rules (use with caution, refine for production):**
+    *   **Example Firestore Rules:**
         ```
         rules_version = '2';
         service cloud.firestore {
           match /databases/{database}/documents {
-            // Allow authenticated users to read/write their own data or specific collections
-            match /users/{userId}/{document=**} { // General user data if you have it
+            match /users/{userId}/{document=**} {
               allow read, write: if request.auth != null && request.auth.uid == userId;
             }
             match /candidates/{candidateId} {
-                // Allow authenticated users (recruiters) to read/write.
-                // Students can effectively write/update their own profile via student signup/application flow
-                // if candidateId matches their request.auth.uid.
+                // Allow authenticated users (recruiters) to read all.
+                // Students can write/update their own profile if candidateId matches their auth.uid.
                 allow read: if request.auth != null;
-                allow write: if request.auth != null && (request.auth.uid == candidateId || /* add recruiter role check here */ true);
+                allow write: if request.auth != null && (request.auth.uid == candidateId || /* add recruiter role check here for full write by recruiters */ false);
+                // Subcollection for custom resumes
+                match /customResumes/{jobId} {
+                  allow read, write: if request.auth != null && request.auth.uid == candidateId;
+                }
             }
             match /jobRequisitions/{jobId} {
-                // Public can read, only authenticated (recruiters) can create/update/delete
-                allow read: if true; // Allows anyone to read job requisitions
-                allow create, update, delete: if request.auth != null; // Recruiters need to be logged in to manage jobs
+                allow read: if true; 
+                allow create, update, delete: if request.auth != null; 
             }
             match /jobApplications/{applicationId} {
-                // Allow authenticated users to create applications for themselves (candidateEmail matches their auth email or candidateId matches uid)
-                // Allow authenticated recruiters to read all applications.
-                allow create: if request.auth != null && (request.resource.data.candidateEmail == request.auth.token.email || request.resource.data.candidateId == request.auth.uid);
-                allow read: if request.auth != null; // Simplistic for now, recruiters can read all.
-                // Add update/delete rules as needed (e.g., only recruiter can update status).
+                allow create: if request.auth != null && 
+                                (request.resource.data.candidateEmail == request.auth.token.email || request.resource.data.candidateId == request.auth.uid);
+                allow read: if request.auth != null; // Recruiters can read all. Students can read their own (needs refinement).
+                allow update: if request.auth != null; // Recruiters can update status (needs refinement for specific fields).
             }
           }
         }
         ```
     *   Go to your Firebase Console -> Storage -> Rules.
-    *   **Example Storage Rules (Allow authenticated users to write to their own resume folder):**
+    *   **Example Storage Rules:**
         ```
         rules_version = '2';
         service firebase.storage {
           match /b/{bucket}/o {
             // Allow authenticated users to upload resumes to a path specific to their UID
             match /resumes/{userId}/{allPaths=**} {
-              allow read: if request.auth != null && request.auth.uid == userId; // Or public if needed
+              allow read: if request.auth != null; // Allow authenticated users to read (e.g., student their own, recruiter if linked)
               allow write: if request.auth != null && request.auth.uid == userId;
             }
-            // Add other rules as needed for other storage paths
           }
         }
         ```
-    *   **For production, you MUST define more granular security rules for both Firestore and Storage.**
-
-7.  **Firestore Composite Index (CRUCIAL for Student Job Portal):**
-    *   The student job listing page queries jobs by `status` and orders them by `createdAt`. This requires a composite index in Firestore.
-    *   If you see errors in your browser console about a missing index when viewing `/student/jobs`, Firebase will provide a direct link to create it. Follow that link.
-    *   The index fields will typically be:
+    *   **For production, you MUST define more granular security rules.**
+7.  **Firestore Composite Indexes:**
+    *   For student job listing (`/student/jobs`):
         *   Collection ID: `jobRequisitions`
-        *   Fields to index: `status` (Ascending), `createdAt` (Descending)
-    *   Wait for the index to finish building in the Firebase console.
-
-8.  **Run Genkit Development Server:**
-    Genkit flows run on a separate development server. Start it by running:
-    ```bash
-    npm run genkit:dev
-    ```
-    Alternatively, for automatic reloading when you change flow files:
-    ```bash
-    npm run genkit:watch
-    ```
-    This server typically starts on `http://localhost:4000`. Keep this terminal window open.
-
-9.  **Run Next.js Development Server:**
-    In a **new** terminal window or tab (while the Genkit server is still running), start the Next.js frontend application:
-    ```bash
-    npm run dev
-    ```
-    This command starts the Next.js development server, usually on `http://localhost:9002` (as configured in `package.json`).
-
-10. **Access the Application:**
-    Open your web browser and navigate to:
-    [http://localhost:9002](http://localhost:9002)
-
-    You should now see the TalentSleuth AI application running.
-    *   Recruiters can sign up/login via the main links to access the dashboard.
-    *   Students can use the "Student Job Portal" link on the landing page, which directs them to `/student/login`. After signup (including resume upload) or login, they'll be directed to `/student/jobs`.
+        *   Fields: `status` (Ascending), `createdAt` (Descending)
+    *   For student profile applications (`/student/profile`):
+        *   Collection ID: `jobApplications`
+        *   Fields: `candidateId` (Ascending), `applicationDate` (Descending)
+    *   For student profile custom resumes (`/student/profile`):
+        *   Collection ID: `customResumes` (Subcollection under `candidates`)
+        *   Path: `candidates/{candidateId}/customResumes`
+        *   Fields: `createdAt` (Descending)
+    *   Firebase usually provides direct links in console errors to create missing indexes.
+8.  **Run Genkit Development Server:** `npm run genkit:dev` or `npm run genkit:watch`.
+9.  **Run Next.js Development Server:** In a new terminal: `npm run dev`.
+10. **Access:** [http://localhost:9002](http://localhost:9002)
 
 ## Available Scripts
-
-In the `package.json` file, you'll find several scripts for managing the project:
-
--   `npm run dev`: Starts the Next.js development server (frontend).
--   `npm run build`: Builds the Next.js application for production.
--   `npm run start`: Starts a Next.js production server (after building).
--   `npm run lint`: Lints the codebase using Next.js's built-in ESLint configuration.
--   `npm run typecheck`: Runs TypeScript to check for type errors.
--   `npm run genkit:dev`: Starts the Genkit development server.
--   `npm run genkit:watch`: Starts the Genkit development server with file watching for auto-reloads.
+-   `npm run dev`: Starts Next.js dev server.
+-   `npm run build`: Builds Next.js for production.
+-   `npm run start`: Starts Next.js production server.
+-   `npm run lint`: Lints code.
+-   `npm run typecheck`: Type checks.
+-   `npm run genkit:dev`: Starts Genkit dev server.
+-   `npm run genkit:watch`: Starts Genkit dev server with watch mode.
 
 ## Further Development & Considerations
-
-*   **Implement Remaining ATS Features:**
-    *   [Apply] button logic to send stored resume.
-    *   [Custom Resume] button logic with AI generation.
-    *   Google Workspace API integrations (OAuth 2.0 setup will be necessary).
-*   **Robust Firestore & Storage Security Rules:** This is paramount for any production application.
-*   **Error Handling and UI Polish:** Enhance error handling for AI flows, API calls, and Firestore operations.
-*   **File Handling Robustness:** Improve handling and user feedback for various resume file types, sizes, and potential parsing issues.
-*   **Security:** Ensure API keys are managed securely. Use Firebase App Check.
-*   **Scalability:** For larger applications, consider Firestore data structuring, indexing, and query optimization.
-*   **User Roles:** Implement more distinct user roles (e.g., in Firestore user profiles) to control access to different parts of the application.
-*   **Student Profile Management:** Allow students to fully manage their profiles after auto-creation (e.g., upload a new resume, edit parsed details).
+*   Implement remaining ATS features, especially Google Workspace API integrations (OAuth 2.0 setup will be necessary).
+*   Robust Firestore & Storage Security Rules.
+*   Error Handling and UI Polish.
+*   Security: API key management, Firebase App Check.
+*   Scalability: Firestore data structuring, indexing, query optimization.
+*   User Roles for more granular access control.
+*   Student Profile Management: Allow students to fully edit their profiles, upload new main resumes directly, delete custom resumes.
+```

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { db, storage } from "@/lib/firebase";
 import {
   collection,
@@ -35,6 +36,7 @@ import {
   orderBy,
   Timestamp,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/context/auth-context";
@@ -47,17 +49,18 @@ import {
   MapPin,
   Send,
   CheckCircle,
-  AlertTriangle,
   UploadCloud,
-  FileText,
+  UserCircle,
   Palette,
-  UserCircle, // Added for Profile button
+  Copy,
+  Save,
 } from "lucide-react";
 import Link from "next/link";
 import type { UnifiedCandidate, DigitalResume } from "@/context/candidate-context";
 import { useCandidateContext } from "@/context/candidate-context";
 import { parseResume, type ParseResumeOutput } from "@/ai/flows/resume-parsing";
-import { generateResumeTextContent } from "@/lib/mock-data"; // Keep this import
+import { generateResumeTextContent } from "@/lib/mock-data";
+import { generateCustomResume } from "@/ai/flows/generate-custom-resume";
 
 interface JobRequisition {
   id: string;
@@ -80,9 +83,14 @@ export default function StudentJobsPage() {
   const [selectedJobForApplication, setSelectedJobForApplication] = useState<JobRequisition | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   
-  // States for resume upload within the application dialog
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileDataUri, setFileDataUri] = useState<string | null>(null);
+
+  const [showCustomResumeDialog, setShowCustomResumeDialog] = useState(false);
+  const [currentJobForCustomResume, setCurrentJobForCustomResume] = useState<JobRequisition | null>(null);
+  const [generatedCustomResumeText, setGeneratedCustomResumeText] = useState<string | null>(null);
+  const [isGeneratingCustomResume, setIsGeneratingCustomResume] = useState(false);
+  const [isSavingAndApplyingCustom, setIsSavingAndApplyingCustom] = useState(false);
 
 
   useEffect(() => {
@@ -132,120 +140,118 @@ export default function StudentJobsPage() {
     }
   };
 
-  const openApplyDialog = (job: JobRequisition) => {
+  const openApplyWithProfileResumeDialog = (job: JobRequisition) => {
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please log in or sign up to apply for jobs.",
-        variant: "default", // Changed to default as it's informational
+        variant: "default",
         action: <Button asChild><Link href="/student/login">Login</Link></Button>,
       });
       return;
     }
     setSelectedJobForApplication(job);
     setShowApplyDialogForJobId(job.id);
-    setSelectedFile(null); // Reset file state when opening dialog
+    setSelectedFile(null); 
     setFileDataUri(null);
   };
 
-  const handleApplyWithResume = async () => {
-    if (!user || !selectedJobForApplication || !fileDataUri || !selectedFile) {
-      toast({ title: "Missing Information", description: "User, job, or resume file is missing.", variant: "destructive" });
+  const handleApplyWithProfileResume = async () => {
+    if (!user || !selectedJobForApplication) {
+      toast({ title: "Missing Information", description: "User or job details are missing.", variant: "destructive" });
       return;
     }
+  
     setIsApplying(true);
     try {
-      // 0. Check for duplicate application
-      const appQuery = query(collection(db, "jobApplications"), where("jobId", "==", selectedJobForApplication.id), where("candidateEmail", "==", user.email));
+      const appQuery = query(collection(db, "jobApplications"), where("jobId", "==", selectedJobForApplication.id), where("candidateId", "==", user.uid), where("applicationType", "==", "profile"));
       const appQuerySnapshot = await getDocs(appQuery);
       if (!appQuerySnapshot.empty) {
-        toast({ title: "Already Applied", description: `You have already applied for ${selectedJobForApplication.title}.`, variant: "default" });
+        toast({ title: "Already Applied", description: `You have already applied for ${selectedJobForApplication.title} using your profile resume.`, variant: "default" });
         setShowApplyDialogForJobId(null);
         setIsApplying(false);
         return;
       }
-
-      // 1. Parse Resume (already have fileDataUri from dialog)
-      let parsedData: ParseResumeOutput;
-      try {
-        parsedData = await parseResume({ resumeDataUri: fileDataUri });
-      } catch (parseError) {
-        console.error("Error parsing resume during application:", parseError);
-        toast({ title: "Resume Parsing Issue", description: "Could not parse resume. Application not submitted.", variant: "destructive" });
+  
+      let candidateProfile = await fetchCandidateByUid(user.uid);
+      let candidateNameForApp = candidateProfile?.name || user.displayName || user.email?.split('@')[0] || "Student Applicant";
+      let finalResumeUrl = candidateProfile?.resumeUrl; 
+  
+      if (selectedFile && fileDataUri) { 
+        let parsedData: ParseResumeOutput;
+        try {
+          parsedData = await parseResume({ resumeDataUri: fileDataUri });
+        } catch (parseError) {
+          console.error("Error parsing new resume during application:", parseError);
+          toast({ title: "Resume Parsing Issue", description: "Could not parse the new resume. Application not submitted.", variant: "destructive" });
+          setIsApplying(false);
+          return;
+        }
+  
+        const storageRef = ref(storage, `resumes/${user.uid}/${Date.now()}_${selectedFile.name}`);
+        await uploadBytes(storageRef, selectedFile);
+        finalResumeUrl = await getDownloadURL(storageRef); 
+  
+        const candidateDocRef = doc(db, "candidates", user.uid);
+        const resumeTextContent = generateResumeTextContent(parsedData);
+        const candidateUpdateData: Partial<UnifiedCandidate> = {
+          name: parsedData.name || candidateNameForApp,
+          email: user.email,
+          phone: parsedData.phone,
+          education: parsedData.education,
+          experience: parsedData.experience,
+          skills: parsedData.skills,
+          certifications: parsedData.certifications,
+          resumeUrl: finalResumeUrl,
+          digitalResume: parsedData as DigitalResume,
+          resumeTextContent: resumeTextContent,
+          updatedAt: Timestamp.now(),
+          avatarUrl: candidateProfile?.avatarUrl || `https://placehold.co/80x80.png?text=${(parsedData.name || candidateNameForApp).split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}`,
+          role: candidateProfile?.role || parsedData.experience?.split('\\n')[0]?.trim() || "Student Applicant",
+          topSkill: candidateProfile?.topSkill || parsedData.skills?.split(',')[0]?.trim() || "Awaiting Skills",
+        };
+  
+        if (candidateProfile) {
+          await updateDoc(candidateDocRef, candidateUpdateData);
+          refreshCandidateInLocalState(user.uid, { ...candidateUpdateData, id:user.uid });
+          toast({ title: "Profile Updated", description: "Your profile and main resume have been updated." });
+        } else {
+          const newCandidateData: UnifiedCandidate = {
+            id: user.uid, uid: user.uid, createdAt: Timestamp.now(), ...candidateUpdateData,
+          } as UnifiedCandidate;
+          await setDoc(candidateDocRef, newCandidateData);
+          addCandidateToLocalState(newCandidateData);
+          toast({ title: "Profile Created", description: "Your profile has been created with the new resume." });
+        }
+        candidateNameForApp = parsedData.name || candidateNameForApp; 
+      } else if (!candidateProfile?.resumeUrl) {
+        toast({ title: "No Resume on Profile", description: "Please upload a resume to your profile first (e.g., during signup or by applying with a new resume now).", variant: "destructive" });
         setIsApplying(false);
-        return;
+        return; 
       }
 
-      // 2. Upload resume to Firebase Storage
-      const storageRef = ref(storage, `resumes/${user.uid}/${Date.now()}_${selectedFile.name}`); // Unique name
-      await uploadBytes(storageRef, selectedFile);
-      const newResumeUrl = await getDownloadURL(storageRef);
-
-      // 3. Create or Update Candidate Profile in Firestore
-      let candidateIdForApp = user.uid; // Use UID as candidate ID
-      let candidateNameForApp = user.displayName || parsedData.name || user.email?.split('@')[0] || "Student Applicant";
-
-      const candidateDocRef = doc(db, "candidates", user.uid);
-      const existingCandidateSnap = await getDocs(query(collection(db, "candidates"), where("uid", "==", user.uid)));
-
-
-      const resumeTextContent = generateResumeTextContent(parsedData);
-      const candidateUpdateData: Partial<UnifiedCandidate> = {
-        name: candidateNameForApp, // Ensure name is updated if parsed one is better
-        email: user.email,
-        phone: parsedData.phone,
-        education: parsedData.education,
-        experience: parsedData.experience,
-        skills: parsedData.skills,
-        certifications: parsedData.certifications,
-        resumeUrl: newResumeUrl, // Update with the new resume
-        digitalResume: parsedData,
-        resumeTextContent: resumeTextContent,
-        updatedAt: Timestamp.now(),
-        // Retain existing avatarUrl, role, topSkill if they exist, or set defaults
-        avatarUrl: existingCandidateSnap.docs[0]?.data()?.avatarUrl || `https://placehold.co/80x80.png?text=${candidateNameForApp.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}`,
-        role: existingCandidateSnap.docs[0]?.data()?.role || parsedData.experience?.split('\\n')[0]?.trim() || "Student Applicant",
-        topSkill: existingCandidateSnap.docs[0]?.data()?.topSkill || parsedData.skills?.split(',')[0]?.trim() || "Awaiting Skills",
-      };
-
-      if (!existingCandidateSnap.empty) { // Profile exists, update it
-        await updateDoc(candidateDocRef, candidateUpdateData);
-        refreshCandidateInLocalState(user.uid, { ...candidateUpdateData, id:user.uid });
-         toast({ title: "Profile Updated", description: "Your profile and resume have been updated." });
-      } else { // Profile doesn't exist, create it (should be rare if signup flow is robust)
-        const newCandidateData: UnifiedCandidate = {
-          id: user.uid,
-          uid: user.uid,
-          createdAt: Timestamp.now(),
-          ...candidateUpdateData,
-        } as UnifiedCandidate;
-        await setDoc(candidateDocRef, newCandidateData);
-        addCandidateToLocalState(newCandidateData);
-         toast({ title: "Profile Created", description: "Your profile has been created with the new resume." });
-      }
-
-      // 4. Create Job Application
       await addDoc(collection(db, "jobApplications"), {
         jobId: selectedJobForApplication.id,
         jobTitle: selectedJobForApplication.title,
-        candidateId: user.uid, // This is the Firestore doc ID (user.uid for students)
+        candidateId: user.uid,
         candidateName: candidateNameForApp,
         candidateEmail: user.email,
         applicationDate: serverTimestamp(),
         status: "Applied",
-        source: "Student Portal - Resume Upload Apply",
-        appliedWithResumeUrl: newResumeUrl,
+        source: "Student Portal - Profile Resume Apply",
+        appliedWithResumeUrl: finalResumeUrl, 
+        applicationType: "profile",
       });
-
+  
       toast({
         title: "Application Sent!",
-        description: `Successfully applied for ${selectedJobForApplication.title} with the uploaded resume.`,
+        description: `Successfully applied for ${selectedJobForApplication.title} using your profile resume.`,
         variant: "default",
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
-
+  
     } catch (error) {
-      console.error("Error during apply with resume:", error);
+      console.error("Error during apply with profile resume:", error);
       toast({ title: "Application Failed", description: "An unexpected error occurred.", variant: "destructive" });
     } finally {
       setIsApplying(false);
@@ -255,17 +261,116 @@ export default function StudentJobsPage() {
     }
   };
   
-  const handleCustomResumeApply = async (job: JobRequisition) => {
-     if (!user) {
+  const handleGenerateCustomResume = async (job: JobRequisition) => {
+    if (!user) {
       toast({ title: "Authentication Required", description: "Please log in to use this feature.", variant: "destructive"});
       return;
     }
-    toast({
-        title: "Custom Resume Feature",
-        description: "Generating and sending a custom resume is a planned feature and coming soon!",
-        variant: "default"
-    });
+    setCurrentJobForCustomResume(job);
+    setIsGeneratingCustomResume(true);
+    setGeneratedCustomResumeText(null);
+    setShowCustomResumeDialog(true);
+
+    try {
+      const candidateProfile = await fetchCandidateByUid(user.uid);
+      if (!candidateProfile?.digitalResume) {
+        toast({ title: "Profile Incomplete", description: "Your profile's digital resume data is missing. Please ensure your resume was parsed during signup or when applying.", variant: "destructive" });
+        setIsGeneratingCustomResume(false);
+        setShowCustomResumeDialog(false);
+        return;
+      }
+
+      const jobDocRef = doc(db, "jobRequisitions", job.id);
+      const jobDocSnap = await getDoc(jobDocRef);
+      if (!jobDocSnap.exists() || !jobDocSnap.data()?.description) {
+        toast({ title: "Job Details Missing", description: "Could not fetch the full job description.", variant: "destructive" });
+        setIsGeneratingCustomResume(false);
+        setShowCustomResumeDialog(false);
+        return;
+      }
+      const jobDescriptionText = jobDocSnap.data()?.description;
+
+      const result = await generateCustomResume({
+        jobDescriptionText: jobDescriptionText,
+        studentDigitalResume: candidateProfile.digitalResume
+      });
+      setGeneratedCustomResumeText(result.generatedResumeText);
+
+    } catch (error) {
+        console.error("Error generating custom resume:", error);
+        toast({ title: "Generation Failed", description: "Could not generate custom resume.", variant: "destructive" });
+        setShowCustomResumeDialog(false);
+    } finally {
+        setIsGeneratingCustomResume(false);
+    }
   };
+
+  const handleSaveAndApplyCustomResume = async () => {
+    if (!user || !currentJobForCustomResume || !generatedCustomResumeText) {
+      toast({ title: "Missing Data", description: "User, job, or generated resume text is missing.", variant: "destructive" });
+      return;
+    }
+    setIsSavingAndApplyingCustom(true);
+    try {
+      const customResumeDocRef = doc(db, "candidates", user.uid, "customResumes", currentJobForCustomResume.id);
+      await setDoc(customResumeDocRef, {
+        jobId: currentJobForCustomResume.id,
+        jobTitle: currentJobForCustomResume.title,
+        generatedResumeText: generatedCustomResumeText,
+        createdAt: serverTimestamp(),
+      });
+
+      const candidateProfile = await fetchCandidateByUid(user.uid);
+      const candidateNameForApp = candidateProfile?.name || user.displayName || user.email?.split('@')[0] || "Student Applicant";
+
+      const appQuery = query(collection(db, "jobApplications"), where("jobId", "==", currentJobForCustomResume.id), where("candidateId", "==", user.uid), where("applicationType", "==", "custom"));
+      const appQuerySnapshot = await getDocs(appQuery);
+      if (!appQuerySnapshot.empty) {
+          toast({ title: "Already Applied", description: `You have already applied for ${currentJobForCustomResume.title} with a custom resume.`, variant: "default" });
+          setShowCustomResumeDialog(false);
+          setGeneratedCustomResumeText(null);
+          setCurrentJobForCustomResume(null);
+          setIsSavingAndApplyingCustom(false);
+          return;
+      }
+
+      await addDoc(collection(db, "jobApplications"), {
+        jobId: currentJobForCustomResume.id,
+        jobTitle: currentJobForCustomResume.title,
+        candidateId: user.uid,
+        candidateName: candidateNameForApp,
+        candidateEmail: user.email,
+        applicationDate: serverTimestamp(),
+        status: "Applied",
+        applicationType: "custom",
+        customResumeText: generatedCustomResumeText,
+      });
+
+      toast({
+        title: "Application Sent!",
+        description: `Successfully applied for ${currentJobForCustomResume.title} with a custom resume.`,
+        variant: "default",
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+      });
+      setShowCustomResumeDialog(false);
+      setGeneratedCustomResumeText(null);
+      setCurrentJobForCustomResume(null);
+
+    } catch (error) {
+      console.error("Error saving/applying custom resume:", error);
+      toast({ title: "Save/Apply Failed", description: "An error occurred.", variant: "destructive" });
+    } finally {
+      setIsSavingAndApplyingCustom(false);
+    }
+  };
+
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => toast({ title: "Copied to Clipboard!", description: "Resume text copied." }))
+      .catch(() => toast({ title: "Copy Failed", description: "Could not copy text.", variant: "destructive" }));
+  };
+
 
   if (authLoading || loadingJobs) {
     return (
@@ -328,19 +433,19 @@ export default function StudentJobsPage() {
               <CardFooter className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button
                   className="w-full sm:flex-1 rounded-lg"
-                  onClick={() => openApplyDialog(job)} 
+                  onClick={() => openApplyWithProfileResumeDialog(job)} 
                   disabled={authLoading}
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  Apply Now
+                  Apply with Profile Resume
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full sm:flex-1 rounded-lg"
-                  onClick={() => handleCustomResumeApply(job)}
-                  disabled={authLoading}
+                  onClick={() => handleGenerateCustomResume(job)}
+                  disabled={authLoading || (isGeneratingCustomResume && currentJobForCustomResume?.id === job.id)}
                 >
-                  <Palette className="mr-2 h-4 w-4" />
+                  {(isGeneratingCustomResume && currentJobForCustomResume?.id === job.id) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Palette className="mr-2 h-4 w-4" />}
                   Create Custom Resume
                 </Button>
               </CardFooter>
@@ -357,12 +462,12 @@ export default function StudentJobsPage() {
                 <UploadCloud className="mr-2 h-5 w-5 text-primary"/> Apply for {selectedJobForApplication.title}
               </DialogTitle>
               <DialogDescription>
-                Please upload your resume (PDF, DOC, DOCX, TXT) for this application. This will update your main profile resume.
+                Upload a new resume (PDF, DOCX, TXT) to update your profile and apply, or apply with your current profile resume if available.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                    <Label htmlFor="resume-upload-apply">Upload Resume</Label>
+                    <Label htmlFor="resume-upload-apply">Upload New Resume (Optional)</Label>
                     <Input
                     id="resume-upload-apply"
                     type="file"
@@ -370,7 +475,7 @@ export default function StudentJobsPage() {
                     onChange={handleFileChangeForApplication}
                     className="rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                     />
-                    {selectedFile && <p className="text-xs text-muted-foreground">Selected: {selectedFile.name}</p>}
+                    {selectedFile && <p className="text-xs text-muted-foreground">Selected for upload: {selectedFile.name}</p>}
                 </div>
             </div>
             <DialogFooter className="pt-4">
@@ -378,16 +483,68 @@ export default function StudentJobsPage() {
                 <Button variant="outline" className="rounded-lg">Cancel</Button>
               </DialogClose>
               <Button
-                onClick={handleApplyWithResume}
-                disabled={isApplying || !selectedFile || !fileDataUri}
+                onClick={handleApplyWithProfileResume}
+                disabled={isApplying}
                 className="rounded-lg"
               >
-                {isApplying ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="mr-2 h-4 w-4" />
-                )}
-                {isApplying ? "Submitting..." : "Submit Application"}
+                {isApplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {isApplying ? "Submitting..." : (selectedFile ? "Update Profile & Apply" : "Apply with Profile Resume")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+       {showCustomResumeDialog && currentJobForCustomResume && (
+        <Dialog open={showCustomResumeDialog} onOpenChange={(isOpen) => { if (!isOpen) { setShowCustomResumeDialog(false); setGeneratedCustomResumeText(null); setCurrentJobForCustomResume(null); }}}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-xl">
+                <Palette className="mr-2 h-5 w-5 text-primary" /> Custom Resume for {currentJobForCustomResume.title}
+              </DialogTitle>
+              <DialogDescription>
+                Review the AI-generated custom resume below. You can save and apply with it.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 max-h-[60vh] overflow-y-auto">
+              {isGeneratingCustomResume ? (
+                <div className="flex flex-col items-center justify-center min-h-[200px]">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+                  <p className="text-muted-foreground">AI is tailoring your resume...</p>
+                </div>
+              ) : generatedCustomResumeText ? (
+                <>
+                  <Textarea
+                    value={generatedCustomResumeText}
+                    readOnly
+                    rows={15}
+                    className="w-full rounded-md bg-muted/50 p-3 text-sm"
+                  />
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedCustomResumeText)} className="mt-2">
+                    <Copy className="mr-2 h-4 w-4" /> Copy Text
+                  </Button>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-center min-h-[200px] flex items-center justify-center">
+                  Could not generate custom resume content.
+                </p>
+              )}
+            </div>
+            <DialogFooter className="pt-4">
+              <DialogClose asChild>
+                <Button variant="outline" className="rounded-lg" onClick={() => {
+                  setShowCustomResumeDialog(false);
+                  setGeneratedCustomResumeText(null);
+                  setCurrentJobForCustomResume(null);
+                }}>Close</Button>
+              </DialogClose>
+              <Button
+                onClick={handleSaveAndApplyCustomResume}
+                disabled={isGeneratingCustomResume || !generatedCustomResumeText || isSavingAndApplyingCustom}
+                className="rounded-lg"
+              >
+                {isSavingAndApplyingCustom ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {isSavingAndApplyingCustom ? "Applying..." : "Save & Apply with this Resume"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -396,5 +553,3 @@ export default function StudentJobsPage() {
     </div>
   );
 }
-
-    
