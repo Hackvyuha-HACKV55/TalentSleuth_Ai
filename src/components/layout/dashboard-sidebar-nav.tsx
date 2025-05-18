@@ -13,7 +13,8 @@ import {
   LogOut,
   HelpCircle,
   Columns, 
-  Archive, 
+  Archive,
+  FileText as ApplicationsIcon, // Using FileText as a placeholder for Applications
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -29,7 +30,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils"; // Ensure cn is imported
+import { cn } from "@/lib/utils";
 
 const mainNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -45,6 +46,7 @@ const toolsNavItems = [
 
 const atsNavItems = [
   { href: "/dashboard/ats/jobs", label: "Job Requisitions", icon: Archive },
+  { href: "/dashboard/ats/applications", label: "Applications", icon: ApplicationsIcon },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {

@@ -4,12 +4,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // Added usePathname
 import { Briefcase, LogIn, LogOut, UserPlus, LayoutDashboard } from "lucide-react";
 
 export default function Navbar() {
   const { user, signOut, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname(); // Get current path
 
   const handleSignOut = async () => {
     try {
@@ -19,6 +20,8 @@ export default function Navbar() {
       console.error("Failed to sign out", error);
     }
   };
+
+  const isStudentPage = pathname.startsWith('/student');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -30,7 +33,7 @@ export default function Navbar() {
           </span>
         </Link>
         <nav className="flex items-center space-x-2 md:space-x-4">
-          {user && (
+          {user && !isStudentPage && ( // Conditionally render Dashboard button
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard" className="text-sm font-medium text-primary hover:text-primary/80">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
