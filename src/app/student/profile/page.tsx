@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { useCandidateContext, type UnifiedCandidate } from "@/context/candidate-context";
-import { Loader2, User, Mail, FileText, Download, Edit, Briefcase, ClipboardList, FileHeart } from "lucide-react"; // Added FileHeart for custom resumes
+import { Loader2, User, Mail, FileText, Download, Briefcase, ClipboardList, FileHeart } from "lucide-react"; // Removed Edit as it wasn't used
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
@@ -20,6 +21,9 @@ interface StudentApplication extends DocumentData {
   jobTitle: string;
   applicationDate: Timestamp;
   status: string;
+  applicationType?: "profile" | "custom";
+  customResumeText?: string;
+  appliedWithResumeUrl?: string;
 }
 
 interface CustomResumeEntry extends DocumentData {
@@ -58,23 +62,24 @@ export default function StudentProfilePage() {
             orderBy("applicationDate", "desc")
           );
           const appsSnapshot = await getDocs(appsQuery);
-          const fetchedApps = appsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentApplication));
+          const fetchedApps = appsSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as StudentApplication));
           setApplications(fetchedApps);
 
           // Fetch Custom Resumes
+          // Ensure the path is correct: candidates/{userId}/customResumes
           const customResumesQuery = query(
             collection(db, "candidates", user.uid, "customResumes"),
             orderBy("createdAt", "desc")
           );
           const customResumesSnapshot = await getDocs(customResumesQuery);
-          const fetchedCustomResumes = customResumesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CustomResumeEntry));
+          const fetchedCustomResumes = customResumesSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as CustomResumeEntry));
           setCustomResumes(fetchedCustomResumes);
 
         } catch (error) {
           console.error("Error fetching student profile data:", error);
           toast({
             title: "Error",
-            description: "Could not load all your profile data.",
+            description: "Could not load all your profile data. Check Firestore indexes if errors persist in console.",
             variant: "destructive",
           });
         } finally {
@@ -89,13 +94,14 @@ export default function StudentProfilePage() {
       }
     };
     loadProfileData();
-  }, [user, authLoading, fetchCandidateByUid, toast]);
+  }, [user, authLoading, fetchCandidateByUid, toast]); // toast is stable, but included for completeness if its instance changed.
 
   const getInitials = (name?: string | null) => {
     if (!name) return "S";
-    const names = name.split(' ');
+    const names = name.trim().split(' ');
+    if (names.length === 0 || names[0] === "") return "S";
     if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
-    return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
+    return names[0][0].toUpperCase() + (names[names.length - 1][0]?.toUpperCase() || '');
   };
 
   const handleDownloadResume = () => {
@@ -112,7 +118,7 @@ export default function StudentProfilePage() {
       case "Applied": return "default";
       case "Screening": return "secondary";
       case "Interviewing": return "default"; 
-      case "Offered": return "default"; 
+      case "Offered": return "default";
       case "Hired": return "default";
       case "Rejected": return "destructive";
       default: return "outline";
@@ -133,7 +139,7 @@ export default function StudentProfilePage() {
       <div className="container mx-auto py-8 px-4 md:px-6 text-center">
         <h1 className="text-2xl font-semibold text-destructive mb-4">Access Denied</h1>
         <p className="text-muted-foreground mb-6">Please log in to view your profile.</p>
-        <Button asChild>
+        <Button asChild className="rounded-lg">
           <Link href="/student/login">Login</Link>
         </Button>
       </div>
@@ -147,12 +153,12 @@ export default function StudentProfilePage() {
         <h1 className="text-2xl font-semibold text-foreground mb-2">Profile Not Found</h1>
         <p className="text-muted-foreground mb-4">
           We couldn't find a detailed profile for your account. 
-          This typically happens if you signed up before the resume upload feature was fully active.
+          This can happen if your resume wasn't uploaded or parsed during signup.
         </p>
         <p className="text-sm text-muted-foreground mb-6">
-          Please try signing up again with your resume, or if you believe this is an error, contact support.
+          Please try signing up again with your resume, or if you applied for a job and uploaded a resume, it may still be processing.
         </p>
-         <Button asChild variant="outline">
+         <Button asChild variant="outline" className="rounded-lg">
           <Link href="/student/signup">Sign Up & Upload Resume</Link>
         </Button>
       </div>
@@ -180,7 +186,7 @@ export default function StudentProfilePage() {
             {candidateProfile.resumeUrl ? (
               <div className="p-4 border rounded-lg bg-secondary/30 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Your primary resume is on file (uploaded during signup or last application).
+                  Your primary resume (uploaded during signup or last application).
                 </p>
                 <Button onClick={handleDownloadResume} className="w-full sm:w-auto rounded-lg">
                   <Download className="mr-2 h-4 w-4" /> Download Resume
@@ -188,14 +194,14 @@ export default function StudentProfilePage() {
               </div>
             ) : (
               <div className="p-4 border rounded-lg bg-amber-500/10 text-center">
-                <p className="text-sm text-amber-700">No main resume uploaded. You can upload one when applying for a job.</p>
+                <p className="text-sm text-amber-700">No main resume uploaded. You can upload one when applying for a job or during signup.</p>
               </div>
             )}
           </div>
 
           <div className="space-y-4 pt-6 border-t">
             <h3 className="text-xl font-semibold text-foreground flex items-center">
-              <Edit className="mr-2 h-5 w-5 text-primary" /> Manage Profile
+               <Briefcase className="mr-2 h-5 w-5 text-primary" /> Manage Profile {/* Changed icon */}
             </h3>
             <p className="text-sm text-muted-foreground">
               Functionality to edit your profile details and upload/update your main resume directly here will be available soon.
@@ -213,7 +219,7 @@ export default function StudentProfilePage() {
                 <p className="ml-2 text-muted-foreground">Loading custom resumes...</p>
               </div>
             ) : customResumes.length > 0 ? (
-              <Accordion type="multiple" className="w-full">
+              <Accordion type="multiple" className="w-full" defaultValue={customResumes.map(cr => cr.id).slice(0,1)}>
                 {customResumes.map((cr) => (
                   <AccordionItem value={cr.id} key={cr.id}>
                     <AccordionTrigger className="text-md hover:no-underline">
@@ -253,14 +259,20 @@ export default function StudentProfilePage() {
               <div className="space-y-3">
                 {applications.map(app => (
                   <Card key={app.id} className="rounded-lg border bg-card p-4">
-                    <div className="flex justify-between items-start">
-                        <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div className="flex-grow">
                             <p className="font-semibold text-foreground">{app.jobTitle}</p>
                             <p className="text-xs text-muted-foreground">
                                 Applied: {app.applicationDate?.toDate().toLocaleDateString()}
                             </p>
+                            {app.applicationType === "custom" && (
+                                <p className="text-xs text-primary/80 italic">Applied with Custom Resume</p>
+                            )}
+                             {app.applicationType === "profile" && ( // Removed app.appliedWithResumeUrl check for simplicity
+                                <p className="text-xs text-primary/80 italic">Applied with Profile Resume</p>
+                            )}
                         </div>
-                        <Badge variant={getApplicationStatusBadgeVariant(app.status)}>{app.status}</Badge>
+                        <Badge variant={getApplicationStatusBadgeVariant(app.status)} className="mt-2 sm:mt-0">{app.status}</Badge>
                     </div>
                   </Card>
                 ))}
@@ -268,5 +280,14 @@ export default function StudentProfilePage() {
             ) : (
                 <div className="p-4 border rounded-lg bg-secondary/30 text-center">
                     <p className="text-sm text-muted-foreground">You haven't applied for any jobs yet.</p>
-                    <Button variant="link" asChild className="mt-1 text-primary">
-                        <Link href="/student/jobs">Browse
+                    <Button variant="link" asChild className="mt-1 text-primary rounded-lg">
+                        <Link href="/student/jobs">Browse Jobs</Link>
+                    </Button>
+                </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
