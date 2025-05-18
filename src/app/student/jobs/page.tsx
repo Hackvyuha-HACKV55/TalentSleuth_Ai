@@ -53,6 +53,7 @@ import {
   Palette,
   Copy,
   Save,
+  UserCircle, // Keep UserCircle if used elsewhere or for consistency
 } from "lucide-react";
 import Link from "next/link";
 import type { UnifiedCandidate, DigitalResume } from "@/context/candidate-context";
@@ -169,16 +170,16 @@ export default function StudentJobsPage() {
       const appQuery = query(collection(db, "jobApplications"), 
         where("jobId", "==", selectedJobForApplication.id), 
         where("candidateId", "==", user.uid)
-        // applicationType check can be done after fetching if needed, or add to index
       );
       const appQuerySnapshot = await getDocs(appQuery);
-      // Check if an application of ANY type exists for this job by this user
       if (!appQuerySnapshot.empty) {
           const existingApp = appQuerySnapshot.docs[0].data();
           const appTypeMsg = existingApp.applicationType === "custom" ? "a custom resume" : "your profile resume";
           toast({ title: "Already Applied", description: `You have already applied for ${selectedJobForApplication.title} using ${appTypeMsg}.`, variant: "default" });
           setShowApplyDialogForJobId(null);
           setIsApplying(false);
+          setSelectedFile(null);
+          setFileDataUri(null);
           return;
       }
   
@@ -222,7 +223,7 @@ export default function StudentJobsPage() {
   
         if (candidateProfile) {
           await updateDoc(candidateDocRef, candidateUpdateData);
-          refreshCandidateInLocalState(user.uid, { ...candidateUpdateData, id: user.uid }); // Ensure id is passed
+          refreshCandidateInLocalState(user.uid, { ...candidateUpdateData, id: user.uid }); 
           toast({ title: "Profile Updated", description: "Your profile and main resume have been updated." });
         } else {
           const newCandidateData: UnifiedCandidate = {
@@ -285,7 +286,7 @@ export default function StudentJobsPage() {
       if (!candidateProfile?.digitalResume) {
         toast({ title: "Profile Incomplete", description: "Your profile's digital resume data is missing. Please ensure your resume was parsed during signup or when applying.", variant: "destructive" });
         setIsGeneratingCustomResume(false);
-        setShowCustomResumeDialog(false); // Close dialog if prerequisite is missing
+        setShowCustomResumeDialog(false); 
         return;
       }
 
@@ -294,7 +295,7 @@ export default function StudentJobsPage() {
       if (!jobDocSnap.exists() || !jobDocSnap.data()?.description) {
         toast({ title: "Job Details Missing", description: "Could not fetch the full job description.", variant: "destructive" });
         setIsGeneratingCustomResume(false);
-        setShowCustomResumeDialog(false); // Close dialog
+        setShowCustomResumeDialog(false); 
         return;
       }
       const jobDescriptionText = jobDocSnap.data()?.description;
@@ -308,7 +309,7 @@ export default function StudentJobsPage() {
     } catch (error) {
         console.error("Error generating custom resume:", error);
         toast({ title: "Generation Failed", description: "Could not generate custom resume.", variant: "destructive" });
-        setShowCustomResumeDialog(false); // Close dialog on error
+        setShowCustomResumeDialog(false); 
     } finally {
         setIsGeneratingCustomResume(false);
     }
@@ -321,7 +322,6 @@ export default function StudentJobsPage() {
     }
     setIsSavingAndApplyingCustom(true);
     try {
-      // Check for existing application of any type first
       const appQuery = query(collection(db, "jobApplications"), 
         where("jobId", "==", currentJobForCustomResume.id), 
         where("candidateId", "==", user.uid)
@@ -407,7 +407,7 @@ export default function StudentJobsPage() {
             Find your next opportunity. Apply today!
             </p>
         </div>
-        {/* Profile button is now in the main Navbar for student pages */}
+        {/* The "View Profile" button that was here has been removed as per previous request. Navigation to profile is via main Navbar. */}
       </div>
 
       {jobs.length === 0 ? (
