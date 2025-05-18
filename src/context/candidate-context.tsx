@@ -4,37 +4,49 @@
 import type { ReactNode} from "react";
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { ParseResumeOutput } from "@/ai/flows/resume-parsing";
-import { db } from "@/lib/firebase"; // Import Firestore instance
-import { collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, Timestamp } from "firebase/firestore"; // Added Timestamp
+import { db } from "@/lib/firebase";
+import { collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { generateResumeTextContent } from "@/lib/mock-data"; // For resumeTextContent generation
+import { generateResumeTextContent } from "@/lib/mock-data";
 
+export interface DigitalResume extends ParseResumeOutput {}
 
-export interface UnifiedCandidate extends ParseResumeOutput {
-  id: string;
+export interface UnifiedCandidate {
+  id: string; // Firestore document ID (can be same as uid for students)
+  uid?: string; // Firebase Auth User ID
+  name: string | null;
+  email: string | null;
+  phone?: string | null;
+  education?: string | null;
+  experience?: string | null;
+  skills?: string | null;
+  certifications?: string | null;
   role?: string;
   avatarUrl?: string;
-  resumeOriginalDataUri?: string; 
-  resumeTextContent: string; 
-  topSkill?: string; 
+  resumeOriginalDataUri?: string; // For recruiter uploads, temporary
+  resumeTextContent: string;
+  topSkill?: string;
   fitScore?: number;
-  justification?: string; 
-  // Firebase Timestamps for creation/update, if needed
+  justification?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
+
+  // New fields for student signup flow / enhanced profiles
+  resumeUrl?: string; // URL to the resume file in Firebase Storage
+  digitalResume?: DigitalResume; // Structured parsed resume data
 }
 
 
 interface CandidateContextType {
   candidates: UnifiedCandidate[];
-  addCandidate: (parsedData: ParseResumeOutput, resumeOriginalDataUri: string) => Promise<UnifiedCandidate | null>; // Recruiter adding candidate
+  addCandidate: (parsedData: ParseResumeOutput, resumeOriginalDataUri: string, name?: string, email?: string, uid?: string) => Promise<UnifiedCandidate | null>;
   getCandidateById: (id: string) => UnifiedCandidate | undefined;
-  updateCandidateFitScore: (id: string, fitScore: number, justification?: string) => void; 
+  updateCandidateFitScore: (id: string, fitScore: number, justification?: string) => void;
   deleteCandidate: (id: string) => Promise<void>;
   loadingCandidates: boolean;
-  // New functions for student application flow to update local state
   addCandidateToLocalState: (candidate: UnifiedCandidate) => void;
   refreshCandidateInLocalState: (candidateId: string, updatedData: Partial<UnifiedCandidate>) => void;
+  fetchCandidateByUid: (uid: string) => Promise<UnifiedCandidate | null>;
 }
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
@@ -47,7 +59,7 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
   const sortCandidates = (candidateList: UnifiedCandidate[]) => {
     return [...candidateList].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   };
-  
+
   useEffect(() => {
     const fetchCandidates = async () => {
       setLoadingCandidates(true);
@@ -56,11 +68,11 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
         const q = query(candidatesCollectionRef, orderBy("name"));
         const querySnapshot = await getDocs(q);
         const fetchedCandidates: UnifiedCandidate[] = [];
-        querySnapshot.forEach((docSnap) => { // Renamed doc to docSnap to avoid conflict
+        querySnapshot.forEach((docSnap) => {
           const data = docSnap.data();
-          // Ensure all fields are correctly mapped, especially Timestamps
           const candidate: UnifiedCandidate = {
             id: docSnap.id,
+            uid: data.uid,
             name: data.name || "N/A",
             email: data.email || "N/A",
             phone: data.phone || "N/A",
@@ -77,6 +89,8 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
             justification: data.justification,
             createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
             updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+            resumeUrl: data.resumeUrl,
+            digitalResume: data.digitalResume,
           };
           fetchedCandidates.push(candidate);
         });
@@ -95,46 +109,71 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
 
     fetchCandidates();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
-  // For recruiter adding new candidate
-  const addCandidate = useCallback(async (parsedData: ParseResumeOutput, resumeOriginalDataUri: string): Promise<UnifiedCandidate | null> => {
-    const newId = doc(collection(db, "temp_ids")).id; 
-    const initials = (parsedData.name || "New Candidate")
+  const addCandidate = useCallback(async (
+    parsedData: ParseResumeOutput,
+    resumeOriginalDataUri: string, // This is for recruiter uploads or initial parse
+    nameInput?: string,
+    emailInput?: string,
+    uidInput?: string
+  ): Promise<UnifiedCandidate | null> => {
+    const candidateId = uidInput || doc(collection(db, "temp_ids")).id; // Use UID as ID if available
+    const name = nameInput || parsedData.name;
+    const email = emailInput || parsedData.email;
+
+    if (!name || !email) {
+        toast({
+            title: "Missing Information",
+            description: "Cannot add candidate without name and email.",
+            variant: "destructive",
+        });
+        return null;
+    }
+
+    const initials = (name)
       .split(' ')
       .map(n => n[0])
       .join('')
       .substring(0, 2)
       .toUpperCase();
-    
+
     const resumeTextContent = generateResumeTextContent(parsedData);
 
-    const newCandidate: UnifiedCandidate = {
-      ...parsedData,
-      id: newId, 
+    const newCandidateData: UnifiedCandidate = {
+      id: candidateId,
+      uid: uidInput,
+      name,
+      email,
+      phone: parsedData.phone,
+      education: parsedData.education,
+      experience: parsedData.experience,
+      skills: parsedData.skills,
+      certifications: parsedData.certifications,
       avatarUrl: `https://placehold.co/80x80.png?text=${initials}`,
-      role: parsedData.experience?.split('\n')[0]?.trim() || "Role not specified", 
-      topSkill: parsedData.skills?.split(',')[0]?.trim() || "Skill not specified", 
-      resumeOriginalDataUri,
-      resumeTextContent, 
+      role: parsedData.experience?.split('\\n')[0]?.trim() || "Role not specified",
+      topSkill: parsedData.skills?.split(',')[0]?.trim() || "Skill not specified",
+      resumeOriginalDataUri: uidInput ? undefined : resumeOriginalDataUri, // Only store for non-student (recruiter) uploads
+      resumeTextContent,
+      digitalResume: parsedData, // Store parsed data as digitalResume for students
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
     try {
-      const candidateDocRef = doc(db, "candidates", newCandidate.id);
-      await setDoc(candidateDocRef, newCandidate);
-      setCandidates(prev => sortCandidates([newCandidate, ...prev]));
+      const candidateDocRef = doc(db, "candidates", candidateId);
+      await setDoc(candidateDocRef, newCandidateData);
+      setCandidates(prev => sortCandidates([newCandidateData, ...prev.filter(c => c.id !== candidateId)]));
       toast({
-        title: "Candidate Added",
-        description: `${newCandidate.name} has been successfully saved to the database.`,
+        title: "Candidate Added/Updated",
+        description: `${name} has been successfully saved to the database.`,
       });
-      return newCandidate;
+      return newCandidateData;
     } catch (error) {
-      console.error("Error adding candidate to Firestore:", error);
+      console.error("Error adding/updating candidate in Firestore:", error);
       toast({
         title: "Database Error",
-        description: `Failed to save ${newCandidate.name || 'candidate'} to the database.`,
+        description: `Failed to save ${name || 'candidate'} to the database.`,
         variant: "destructive",
       });
       return null;
@@ -145,13 +184,24 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
     return candidates.find(candidate => candidate.id === id);
   }, [candidates]);
 
+  const fetchCandidateByUid = useCallback(async (uid: string): Promise<UnifiedCandidate | null> => {
+    const q = query(collection(db, "candidates"), where("uid", "==", uid));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const docSnap = querySnapshot.docs[0];
+      return { id: docSnap.id, ...docSnap.data() } as UnifiedCandidate;
+    }
+    return null;
+  }, []);
+
+
   const updateCandidateFitScore = useCallback(async (id: string, fitScore: number, justification?: string) => {
     try {
         const candidateDocRef = doc(db, "candidates", id);
         await updateDoc(candidateDocRef, { fitScore, justification, updatedAt: Timestamp.now() });
         setCandidates(prevCandidates =>
           sortCandidates(prevCandidates.map(c =>
-            c.id === id ? { ...c, fitScore, justification, updatedAt: Timestamp.now() } : c 
+            c.id === id ? { ...c, fitScore, justification, updatedAt: Timestamp.now() } : c
           ))
         );
       } catch (error) {
@@ -178,40 +228,40 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error deleting candidate from Firestore:", error);
       toast({
-        title: "Database Error",
+        title: "DatabaseError",
         description: `Failed to delete ${candidateName} from the database.`,
         variant: "destructive",
       });
     }
   }, [candidates, toast]);
 
-  // Called by student application flow after they successfully create/update in Firestore
   const addCandidateToLocalState = useCallback((candidate: UnifiedCandidate) => {
     setCandidates(prev => {
-      // Avoid duplicates if somehow called multiple times for the same new candidate
-      if (prev.find(c => c.id === candidate.id)) return prev;
-      return sortCandidates([candidate, ...prev]);
+      if (prev.find(c => c.id === candidate.id)) { // if exists, update it
+        return sortCandidates(prev.map(p => p.id === candidate.id ? candidate : p));
+      }
+      return sortCandidates([candidate, ...prev]); // otherwise add new
     });
   }, []);
-  
-  // Called by student application flow after they successfully update in Firestore
+
   const refreshCandidateInLocalState = useCallback((candidateId: string, updatedData: Partial<UnifiedCandidate>) => {
     setCandidates(prev => sortCandidates(
-      prev.map(c => c.id === candidateId ? { ...c, ...updatedData, id: candidateId } : c) // Ensure id is preserved
+      prev.map(c => c.id === candidateId ? { ...c, ...updatedData, id: candidateId } : c)
     ));
   }, []);
 
 
   return (
-    <CandidateContext.Provider value={{ 
-        candidates, 
-        addCandidate, 
-        getCandidateById, 
-        updateCandidateFitScore, 
-        deleteCandidate, 
+    <CandidateContext.Provider value={{
+        candidates,
+        addCandidate,
+        getCandidateById,
+        updateCandidateFitScore,
+        deleteCandidate,
         loadingCandidates,
         addCandidateToLocalState,
-        refreshCandidateInLocalState
+        refreshCandidateInLocalState,
+        fetchCandidateByUid
     }}>
       {children}
     </CandidateContext.Provider>
