@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { profileDiscovery, type ProfileDiscoveryOutput } from "@/ai/flows/profile-discovery";
 import { detectRedFlags, type DetectRedFlagsOutput } from "@/ai/flows/red-flag-detection";
-import { analyzeSentiment, type SentimentAnalysisInput, type SentimentAnalysisOutput } from "@/ai/flows/sentiment-analysis";
-import { use, useState, useEffect } from "react";
+import { analyzeSentiment, type SentimentAnalysisOutput } from "@/ai/flows/sentiment-analysis";
+import { use, useState, useEffect, useCallback } from "react";
 import { Loader2, User, Mail, Phone, BookOpen, Briefcase, Award, Sparkles, Search, AlertTriangle, FileText, MessageCircleMore, ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCandidateContext } from "@/context/candidate-context";
@@ -30,6 +30,8 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
   const [isLoadingRedFlags, setIsLoadingRedFlags] = useState(false);
   const [hasProfileLinks, setHasProfileLinks] = useState(false);
+  const [isAutoAnalysisDone, setIsAutoAnalysisDone] = useState(false);
+
 
   const [endorsementText, setEndorsementText] = useState("");
   const [sentimentResult, setSentimentResult] = useState<SentimentAnalysisOutput | null>(null);
@@ -37,6 +39,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
 
   const { toast } = useToast();
 
+  // Effect to check for profile links in resume content
   useEffect(() => {
     if (candidate?.resumeTextContent) {
       const content = candidate.resumeTextContent.toLowerCase();
@@ -45,42 +48,39 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
       } else {
         setHasProfileLinks(false);
       }
+      setIsAutoAnalysisDone(false); // Reset for new candidate or if resume content changes
+      setProfileDiscoveryResult(null); // Reset AI results when candidate changes
+      setRedFlagResult(null);
     } else {
       setHasProfileLinks(false);
+      setIsAutoAnalysisDone(false);
+      setProfileDiscoveryResult(null);
+      setRedFlagResult(null);
     }
-  }, [candidate?.resumeTextContent]);
+  }, [candidate?.resumeTextContent, candidate?.id]); // Added candidate.id to re-trigger if different candidate loads with same resume text (edge case)
 
-  const runProfileDiscovery = async () => {
-    if (!candidate?.name || !candidate?.email) {
-      toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
-      return;
-    }
-    setIsLoadingDiscovery(true);
-    try {
-      const result = await profileDiscovery({ name: candidate.name, email: candidate.email });
-      setProfileDiscoveryResult(result);
-      toast({ title: "Profile Discovery Complete" });
-    } catch (error) {
-      toast({ title: "Profile Discovery Failed", description: String(error), variant: "destructive" });
-    } finally {
-      setIsLoadingDiscovery(false);
-    }
-  };
+  const runRedFlagDetection = useCallback(async (currentResumeText?: string, currentProfileSummary?: string) => {
+    const resumeTextToUse = currentResumeText || candidate?.resumeTextContent;
+    const profileSummaryToUse = currentProfileSummary || profileDiscoveryResult?.summary;
 
-  const runRedFlagDetection = async () => {
-    if (!candidate?.resumeTextContent) {
-       toast({ title: "Missing Resume Data", description: "Resume text content is needed for red flag detection.", variant: "destructive" });
-      return;
+    if (!resumeTextToUse) {
+        if (!currentResumeText) { 
+            toast({ title: "Missing Resume Data", description: "Resume text content is needed for red flag detection.", variant: "destructive" });
+        }
+        return;
     }
-    if (!profileDiscoveryResult?.summary) {
-       toast({ title: "Profile Discovery Needed", description: "Please run Profile Discovery first. Red Flag Detection compares resume data against online profiles.", variant: "destructive" });
-      return;
+    if (!profileSummaryToUse) {
+         if (!currentProfileSummary) { 
+            toast({ title: "Profile Discovery Needed", description: "Profile Discovery results are needed for Red Flag Detection.", variant: "destructive" });
+         }
+        return;
     }
     setIsLoadingRedFlags(true);
+    setRedFlagResult(null); 
     try {
       const result = await detectRedFlags({
-        resumeText: candidate.resumeTextContent,
-        profileData: profileDiscoveryResult.summary
+        resumeText: resumeTextToUse,
+        profileData: profileSummaryToUse
       });
       setRedFlagResult(result);
       toast({ title: "Red Flag Detection Complete" });
@@ -89,7 +89,39 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
     } finally {
       setIsLoadingRedFlags(false);
     }
-  };
+  }, [candidate?.resumeTextContent, profileDiscoveryResult?.summary, toast]);
+
+  const runProfileDiscovery = useCallback(async () => {
+    if (!candidate?.name || !candidate?.email) {
+      toast({ title: "Missing candidate data for discovery.", variant: "destructive" });
+      return;
+    }
+    setIsLoadingDiscovery(true);
+    setProfileDiscoveryResult(null); 
+    setRedFlagResult(null); 
+    try {
+      const discoveryResult = await profileDiscovery({ name: candidate.name, email: candidate.email });
+      setProfileDiscoveryResult(discoveryResult);
+      toast({ title: "Profile Discovery Complete" });
+
+      if (candidate.resumeTextContent && discoveryResult?.summary) {
+        await runRedFlagDetection(candidate.resumeTextContent, discoveryResult.summary);
+      }
+    } catch (error) {
+      toast({ title: "Profile Discovery Failed", description: String(error), variant: "destructive" });
+    } finally {
+      setIsLoadingDiscovery(false);
+    }
+  }, [candidate, toast, runRedFlagDetection]);
+
+  // Effect for automatic AI insights run
+  useEffect(() => {
+    if (candidate && candidate.resumeTextContent && hasProfileLinks && !isAutoAnalysisDone && !isLoadingDiscovery && !profileDiscoveryResult) {
+      runProfileDiscovery();
+      setIsAutoAnalysisDone(true); 
+    }
+  }, [candidate, hasProfileLinks, runProfileDiscovery, isAutoAnalysisDone, isLoadingDiscovery, profileDiscoveryResult]);
+
 
   const runSentimentAnalysis = async () => {
     if (!endorsementText.trim()) {
@@ -151,9 +183,20 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
   const displayEmail = candidate.email || "Email not available";
   const displayPhone = candidate.phone || "Phone not available";
 
+  // Manual trigger handlers
+  const handleManualDiscovery = () => {
+    setIsAutoAnalysisDone(true); // Prevent auto-run from conflicting if manual is clicked
+    runProfileDiscovery();
+  };
+
+  const handleManualRedFlagDetection = () => {
+    runRedFlagDetection(); // Will use existing candidate and profileDiscoveryResult state
+  };
+
+
   return (
-    <div className="space-y-8 w-full py-6">
-      <Card className="rounded-lg shadow-lg overflow-hidden bg-card border hover:shadow-2xl transition-shadow duration-300">
+    <div className="space-y-8 w-full max-w-5xl mx-auto py-6">
+      <Card className="rounded-2xl shadow-xl overflow-hidden bg-card border hover:shadow-2xl transition-shadow duration-300">
         <CardHeader className="bg-card/50 p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary shadow-lg">
@@ -193,19 +236,19 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
             <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><Search className="mr-2 h-5 w-5" /> Online Profile Discovery</CardTitle>
-                <Button onClick={runProfileDiscovery} disabled={isLoadingDiscovery || !hasProfileLinks} size="sm" variant="outline" className="rounded-lg">
+                <Button onClick={handleManualDiscovery} disabled={isLoadingDiscovery} size="sm" variant="outline" className="rounded-lg">
                   {isLoadingDiscovery ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                  {isLoadingDiscovery ? "Searching..." : "Run Discovery"}
+                  {isLoadingDiscovery ? "Running..." : "Run Discovery"}
                 </Button>
               </div>
                <CardDescription className="text-xs text-muted-foreground mt-1">
-                AI simulates searching for the candidate&apos;s online presence (e.g., LinkedIn, GitHub, Naukri).
-                This feature is most effective if the candidate&apos;s resume includes URLs or specific text references to these platforms, even if they are plain text.
-                {!hasProfileLinks && " (No direct platform links or keywords detected in resume summary.)"}
+                AI (simulates) searching LinkedIn, GitHub, Naukri, etc. based on resume info (especially if links/keywords are present) or name/email.
+                {hasProfileLinks && " Platform keywords detected in resume, auto-discovery attempted on load."}
+                {!hasProfileLinks && " No specific platform links/keywords detected in resume; discovery uses name/email."}
                </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0">
-              {isLoadingDiscovery && <p className="text-muted-foreground">Searching online profiles (simulated)...</p>}
+              {isLoadingDiscovery && !profileDiscoveryResult && <div className="flex items-center text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Searching online profiles (simulated)...</div>}
               {profileDiscoveryResult && (
                 <div className="p-4 bg-card/80 rounded-md border">
                   <h4 className="font-semibold text-foreground mb-1">AI Summary:</h4>
@@ -213,7 +256,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                 </div>
               )}
               {!isLoadingDiscovery && !profileDiscoveryResult &&
-                <p className="text-sm text-muted-foreground">Click "Run Discovery" to attempt to fetch and summarize online profile data.
+                <p className="text-sm text-muted-foreground">Click "Run Discovery" or wait for automatic analysis if profile links are present in the resume.
                 </p>
               }
             </CardContent>
@@ -225,18 +268,18 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
              <CardHeader className="p-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-primary flex items-center"><AlertTriangle className="mr-2 h-5 w-5" /> Red Flag Detection</CardTitle>
-                 <Button onClick={runRedFlagDetection} disabled={isLoadingRedFlags || !profileDiscoveryResult || !candidate.resumeTextContent} size="sm" variant="outline" className="rounded-lg">
+                 <Button onClick={handleManualRedFlagDetection} disabled={isLoadingRedFlags || !profileDiscoveryResult || !candidate.resumeTextContent} size="sm" variant="outline" className="rounded-lg">
                   {isLoadingRedFlags ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <AlertTriangle className="mr-2 h-4 w-4" />}
                   {isLoadingRedFlags ? "Analyzing..." : "Detect Flags"}
                 </Button>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-1">
-                Compares resume data against the (simulated) online profile information obtained from &quot;Profile Discovery&quot;.
-                Analyzes for discrepancies in work history, frequent job changes, and outdated information. Ensure resume content is available and Profile Discovery has been run.
+                Compares resume data against the (simulated) online profile information obtained from "Profile Discovery".
+                Analyzes for discrepancies, frequent job changes, and outdated info. Auto-runs after Profile Discovery.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0">
-              {isLoadingRedFlags && <p className="text-muted-foreground">Analyzing for red flags...</p>}
+              {isLoadingRedFlags && !redFlagResult && <div className="flex items-center text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analyzing for red flags...</div>}
               {redFlagResult && (
                  <div className={`p-4 rounded-md ${redFlagResult.flagged ? 'bg-destructive/10 border border-destructive' : 'bg-green-500/10 border border-green-500'}`}>
                   <h4 className={`font-semibold mb-1 ${redFlagResult.flagged ? 'text-destructive' : 'text-green-600'}`}>
@@ -245,7 +288,7 @@ export default function CandidateProfilePage({ params }: CandidateProfilePagePro
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{redFlagResult.inconsistencies}</p>
                 </div>
               )}
-              {!isLoadingRedFlags && !redFlagResult && <p className="text-sm text-muted-foreground">Click "Detect Flags" after running "Profile Discovery" to analyze for potential red flags.</p>}
+              {!isLoadingRedFlags && !redFlagResult && <p className="text-sm text-muted-foreground">Awaiting Profile Discovery results or click "Detect Flags" if discovery is complete.</p>}
             </CardContent>
           </Card>
 
