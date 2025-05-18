@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { db, storage } from "@/lib/firebase"; // Added storage
+import { db, storage } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -31,13 +31,12 @@ import {
   addDoc,
   serverTimestamp,
   doc,
-  getDoc,
   setDoc,
   orderBy,
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Added storage functions
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -51,13 +50,14 @@ import {
   AlertTriangle,
   UploadCloud,
   FileText,
-  Palette, // Placeholder for Custom Resume, replace with better icon if available
+  Palette,
+  UserCircle, // Added for Profile button
 } from "lucide-react";
 import Link from "next/link";
 import type { UnifiedCandidate, DigitalResume } from "@/context/candidate-context";
 import { useCandidateContext } from "@/context/candidate-context";
 import { parseResume, type ParseResumeOutput } from "@/ai/flows/resume-parsing";
-import { generateResumeTextContent } from "@/lib/mock-data";
+import { generateResumeTextContent } from "@/lib/mock-data"; // Keep this import
 
 interface JobRequisition {
   id: string;
@@ -79,6 +79,11 @@ export default function StudentJobsPage() {
   const [showApplyDialogForJobId, setShowApplyDialogForJobId] = useState<string | null>(null);
   const [selectedJobForApplication, setSelectedJobForApplication] = useState<JobRequisition | null>(null);
   const [isApplying, setIsApplying] = useState(false);
+  
+  // States for resume upload within the application dialog
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileDataUri, setFileDataUri] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchOpenJobs = async () => {
@@ -109,92 +114,144 @@ export default function StudentJobsPage() {
     fetchOpenJobs();
   }, [toast]);
 
+  const handleFileChangeForApplication = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"];
+      if (!allowedTypes.includes(file.type)) {
+        toast({ title: "Invalid File Type", description: "Please upload a PDF, DOC, DOCX or TXT file.", variant: "destructive" });
+        setSelectedFile(null);
+        setFileDataUri(null);
+        return;
+      }
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setFileDataUri(e.target?.result as string);
+      reader.onerror = () => toast({ title: "File Read Error", description: "Could not read the selected file.", variant: "destructive" });
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const openApplyDialog = async (job: JobRequisition) => {
+  const openApplyDialog = (job: JobRequisition) => {
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please log in or sign up to apply for jobs.",
-        variant: "destructive",
+        variant: "default", // Changed to default as it's informational
         action: <Button asChild><Link href="/student/login">Login</Link></Button>,
       });
       return;
     }
-    
-    // Check if candidate profile exists (created during new signup)
-    const candidateProfile = await fetchCandidateByUid(user.uid);
-    if (!candidateProfile || !candidateProfile.resumeUrl) {
-        toast({
-            title: "Profile Incomplete",
-            description: "Your profile is not fully set up with a resume. Please ensure you completed the signup process with a resume.",
-            variant: "destructive",
-        });
-         // Optionally redirect to a profile completion page or back to signup
-        return;
-    }
-
     setSelectedJobForApplication(job);
     setShowApplyDialogForJobId(job.id);
+    setSelectedFile(null); // Reset file state when opening dialog
+    setFileDataUri(null);
   };
 
-  const handleDirectApply = async () => {
-    if (!user || !selectedJobForApplication) {
-      toast({ title: "Missing Information", description: "User or job information is missing.", variant: "destructive" });
+  const handleApplyWithResume = async () => {
+    if (!user || !selectedJobForApplication || !fileDataUri || !selectedFile) {
+      toast({ title: "Missing Information", description: "User, job, or resume file is missing.", variant: "destructive" });
       return;
     }
-
     setIsApplying(true);
     try {
-      // Check for existing application
-      const applicationsQuery = query(
-        collection(db, "jobApplications"),
-        where("jobId", "==", selectedJobForApplication.id),
-        where("candidateEmail", "==", user.email) // Using email for check as UID might not be in old jobApplications
-      );
-      const existingApplicationsSnap = await getDocs(applicationsQuery);
-      if (!existingApplicationsSnap.empty) {
-        toast({ title: "Already Applied", description: "You have already applied for this position.", variant: "default" });
+      // 0. Check for duplicate application
+      const appQuery = query(collection(db, "jobApplications"), where("jobId", "==", selectedJobForApplication.id), where("candidateEmail", "==", user.email));
+      const appQuerySnapshot = await getDocs(appQuery);
+      if (!appQuerySnapshot.empty) {
+        toast({ title: "Already Applied", description: `You have already applied for ${selectedJobForApplication.title}.`, variant: "default" });
         setShowApplyDialogForJobId(null);
         setIsApplying(false);
         return;
       }
 
-      const candidateProfile = await fetchCandidateByUid(user.uid);
-      if (!candidateProfile || !candidateProfile.resumeUrl) {
-        toast({ title: "Application Error", description: "Your candidate profile or resume is not available.", variant: "destructive" });
+      // 1. Parse Resume (already have fileDataUri from dialog)
+      let parsedData: ParseResumeOutput;
+      try {
+        parsedData = await parseResume({ resumeDataUri: fileDataUri });
+      } catch (parseError) {
+        console.error("Error parsing resume during application:", parseError);
+        toast({ title: "Resume Parsing Issue", description: "Could not parse resume. Application not submitted.", variant: "destructive" });
         setIsApplying(false);
         return;
       }
 
-      // Here, you would typically trigger a backend function to send an email with candidateProfile.resumeUrl
-      // For now, we'll just create the application record.
-      // TODO: Implement email sending logic (e.g., via a Firebase Function)
+      // 2. Upload resume to Firebase Storage
+      const storageRef = ref(storage, `resumes/${user.uid}/${Date.now()}_${selectedFile.name}`); // Unique name
+      await uploadBytes(storageRef, selectedFile);
+      const newResumeUrl = await getDownloadURL(storageRef);
 
+      // 3. Create or Update Candidate Profile in Firestore
+      let candidateIdForApp = user.uid; // Use UID as candidate ID
+      let candidateNameForApp = user.displayName || parsedData.name || user.email?.split('@')[0] || "Student Applicant";
+
+      const candidateDocRef = doc(db, "candidates", user.uid);
+      const existingCandidateSnap = await getDocs(query(collection(db, "candidates"), where("uid", "==", user.uid)));
+
+
+      const resumeTextContent = generateResumeTextContent(parsedData);
+      const candidateUpdateData: Partial<UnifiedCandidate> = {
+        name: candidateNameForApp, // Ensure name is updated if parsed one is better
+        email: user.email,
+        phone: parsedData.phone,
+        education: parsedData.education,
+        experience: parsedData.experience,
+        skills: parsedData.skills,
+        certifications: parsedData.certifications,
+        resumeUrl: newResumeUrl, // Update with the new resume
+        digitalResume: parsedData,
+        resumeTextContent: resumeTextContent,
+        updatedAt: Timestamp.now(),
+        // Retain existing avatarUrl, role, topSkill if they exist, or set defaults
+        avatarUrl: existingCandidateSnap.docs[0]?.data()?.avatarUrl || `https://placehold.co/80x80.png?text=${candidateNameForApp.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}`,
+        role: existingCandidateSnap.docs[0]?.data()?.role || parsedData.experience?.split('\\n')[0]?.trim() || "Student Applicant",
+        topSkill: existingCandidateSnap.docs[0]?.data()?.topSkill || parsedData.skills?.split(',')[0]?.trim() || "Awaiting Skills",
+      };
+
+      if (!existingCandidateSnap.empty) { // Profile exists, update it
+        await updateDoc(candidateDocRef, candidateUpdateData);
+        refreshCandidateInLocalState(user.uid, { ...candidateUpdateData, id:user.uid });
+         toast({ title: "Profile Updated", description: "Your profile and resume have been updated." });
+      } else { // Profile doesn't exist, create it (should be rare if signup flow is robust)
+        const newCandidateData: UnifiedCandidate = {
+          id: user.uid,
+          uid: user.uid,
+          createdAt: Timestamp.now(),
+          ...candidateUpdateData,
+        } as UnifiedCandidate;
+        await setDoc(candidateDocRef, newCandidateData);
+        addCandidateToLocalState(newCandidateData);
+         toast({ title: "Profile Created", description: "Your profile has been created with the new resume." });
+      }
+
+      // 4. Create Job Application
       await addDoc(collection(db, "jobApplications"), {
         jobId: selectedJobForApplication.id,
         jobTitle: selectedJobForApplication.title,
-        candidateId: candidateProfile.id, // This is the Firestore doc ID (which is user.uid for students)
-        candidateName: candidateProfile.name,
+        candidateId: user.uid, // This is the Firestore doc ID (user.uid for students)
+        candidateName: candidateNameForApp,
         candidateEmail: user.email,
         applicationDate: serverTimestamp(),
         status: "Applied",
-        source: "Student Portal - Direct Apply",
-        appliedWithResumeUrl: candidateProfile.resumeUrl, // Store which resume was used
+        source: "Student Portal - Resume Upload Apply",
+        appliedWithResumeUrl: newResumeUrl,
       });
 
       toast({
         title: "Application Sent!",
-        description: `Successfully applied for ${selectedJobForApplication.title} using your profile resume.`,
+        description: `Successfully applied for ${selectedJobForApplication.title} with the uploaded resume.`,
         variant: "default",
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
 
     } catch (error) {
-      console.error("Error during direct apply:", error);
-      toast({ title: "Application Failed", variant: "destructive" });
+      console.error("Error during apply with resume:", error);
+      toast({ title: "Application Failed", description: "An unexpected error occurred.", variant: "destructive" });
     } finally {
       setIsApplying(false);
       setShowApplyDialogForJobId(null);
+      setSelectedFile(null);
+      setFileDataUri(null);
     }
   };
   
@@ -208,15 +265,7 @@ export default function StudentJobsPage() {
         description: "Generating and sending a custom resume is a planned feature and coming soon!",
         variant: "default"
     });
-    // Placeholder for future complex Genkit flow
-    // 1. Fetch JD for job.id
-    // 2. Fetch candidate's digitalResume from their profile (user.uid)
-    // 3. Call new Genkit flow: generateCustomResume(jdText, digitalResume) -> returns new resume text/dataURI
-    // 4. (Optional) Save generated resume to Firebase Storage
-    // 5. Send this custom resume (again, email sending logic needed)
-    // 6. Create jobApplication record
   };
-
 
   if (authLoading || loadingJobs) {
     return (
@@ -229,17 +278,26 @@ export default function StudentJobsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
-      <div className="mb-8 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary mb-2">
-          Explore Job Openings
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Find your next opportunity. Apply today!
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="text-center sm:text-left">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary mb-2">
+            Explore Job Openings
+            </h1>
+            <p className="text-lg text-muted-foreground">
+            Find your next opportunity. Apply today!
+            </p>
+        </div>
+        {user && !authLoading && (
+             <Button asChild variant="outline" className="rounded-lg">
+                <Link href="/student/profile">
+                    <UserCircle className="mr-2 h-4 w-4" /> View Profile
+                </Link>
+            </Button>
+        )}
       </div>
 
       {jobs.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-card border rounded-2xl shadow-lg p-10">
           <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
           <h2 className="text-2xl font-semibold text-foreground mb-2">No Open Positions Currently</h2>
           <p className="text-muted-foreground">
@@ -249,7 +307,7 @@ export default function StudentJobsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
-            <Card key={job.id} className="flex flex-col rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card key={job.id} className="flex flex-col rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border bg-card">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl text-primary truncate">{job.title}</CardTitle>
                 <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
@@ -270,11 +328,11 @@ export default function StudentJobsPage() {
               <CardFooter className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button
                   className="w-full sm:flex-1 rounded-lg"
-                  onClick={() => openApplyDialog(job)}
+                  onClick={() => openApplyDialog(job)} 
                   disabled={authLoading}
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  Apply with Profile Resume
+                  Apply Now
                 </Button>
                 <Button
                   variant="outline"
@@ -282,7 +340,7 @@ export default function StudentJobsPage() {
                   onClick={() => handleCustomResumeApply(job)}
                   disabled={authLoading}
                 >
-                  <Palette className="mr-2 h-4 w-4" /> {/* Using Palette as placeholder */}
+                  <Palette className="mr-2 h-4 w-4" />
                   Create Custom Resume
                 </Button>
               </CardFooter>
@@ -292,23 +350,36 @@ export default function StudentJobsPage() {
       )}
 
       {selectedJobForApplication && showApplyDialogForJobId === selectedJobForApplication.id && (
-        <Dialog open={!!showApplyDialogForJobId} onOpenChange={(isOpen) => { if (!isOpen) { setShowApplyDialogForJobId(null); }}}>
-          <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={!!showApplyDialogForJobId} onOpenChange={(isOpen) => { if (!isOpen) { setShowApplyDialogForJobId(null); setSelectedFile(null); setFileDataUri(null); }}}>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5 text-primary"/> Apply for {selectedJobForApplication.title}
+              <DialogTitle className="flex items-center text-xl">
+                <UploadCloud className="mr-2 h-5 w-5 text-primary"/> Apply for {selectedJobForApplication.title}
               </DialogTitle>
               <DialogDescription>
-                You are about to apply using the resume from your profile. Confirm to proceed.
+                Please upload your resume (PDF, DOC, DOCX, TXT) for this application. This will update your main profile resume.
               </DialogDescription>
             </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="resume-upload-apply">Upload Resume</Label>
+                    <Input
+                    id="resume-upload-apply"
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt"
+                    onChange={handleFileChangeForApplication}
+                    className="rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    />
+                    {selectedFile && <p className="text-xs text-muted-foreground">Selected: {selectedFile.name}</p>}
+                </div>
+            </div>
             <DialogFooter className="pt-4">
               <DialogClose asChild>
                 <Button variant="outline" className="rounded-lg">Cancel</Button>
               </DialogClose>
               <Button
-                onClick={handleDirectApply}
-                disabled={isApplying}
+                onClick={handleApplyWithResume}
+                disabled={isApplying || !selectedFile || !fileDataUri}
                 className="rounded-lg"
               >
                 {isApplying ? (
@@ -316,7 +387,7 @@ export default function StudentJobsPage() {
                 ) : (
                   <Send className="mr-2 h-4 w-4" />
                 )}
-                {isApplying ? "Submitting..." : "Confirm & Apply"}
+                {isApplying ? "Submitting..." : "Submit Application"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -325,3 +396,5 @@ export default function StudentJobsPage() {
     </div>
   );
 }
+
+    

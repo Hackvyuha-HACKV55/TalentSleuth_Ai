@@ -5,12 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy, Timestamp, type DocumentData } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, Timestamp, type DocumentData, doc, updateDoc } from "firebase/firestore";
 import { ArrowUpDown, FileText as ApplicationsIcon, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
 interface JobApplication extends DocumentData {
   id: string;
@@ -19,46 +28,74 @@ interface JobApplication extends DocumentData {
   candidateId: string;
   candidateName: string;
   applicationDate: Timestamp;
-  status: string; // e.g., "Applied", "Screening", "Interviewing", "Offered", "Rejected", "Hired"
+  status: "Applied" | "Screening" | "Interviewing" | "Offered" | "Hired" | "Rejected";
 }
+
+const APPLICATION_STATUSES: JobApplication['status'][] = ["Applied", "Screening", "Interviewing", "Offered", "Hired", "Rejected"];
 
 export default function AllJobApplicationsPage() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // Default to newest first
   const { toast } = useToast();
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+
+  const fetchApplications = async (currentSortOrder: 'desc' | 'asc') => {
+    setLoading(true);
+    try {
+      const applicationsCollectionRef = collection(db, "jobApplications");
+      const q = query(applicationsCollectionRef, orderBy("applicationDate", currentSortOrder));
+      const querySnapshot = await getDocs(q);
+      const fetchedApplications: JobApplication[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedApplications.push({
+          id: doc.id,
+          ...doc.data(),
+        } as JobApplication);
+      });
+      setApplications(fetchedApplications);
+    } catch (error) {
+      console.error("Error fetching job applications:", error);
+      toast({
+        title: "Error",
+        description: "Could not fetch job applications.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchApplications = async () => {
-      setLoading(true);
-      try {
-        const applicationsCollectionRef = collection(db, "jobApplications");
-        const q = query(applicationsCollectionRef, orderBy("applicationDate", sortOrder));
-        const querySnapshot = await getDocs(q);
-        const fetchedApplications: JobApplication[] = [];
-        querySnapshot.forEach((doc) => {
-          fetchedApplications.push({
-            id: doc.id,
-            ...doc.data(),
-          } as JobApplication);
-        });
-        setApplications(fetchedApplications);
-      } catch (error) {
-        console.error("Error fetching job applications:", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch job applications.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchApplications();
-  }, [toast, sortOrder]);
+    fetchApplications(sortOrder);
+  }, [sortOrder, toast]);
 
   const toggleSortOrder = () => {
-    setSortOrder(prevOrder => prevOrder === 'desc' ? 'asc' : 'desc');
+    setSortOrder(prevOrder => (prevOrder === 'desc' ? 'asc' : 'desc'));
+  };
+
+  const handleStatusUpdate = async (applicationId: string, newStatus: JobApplication['status']) => {
+    setUpdatingStatusId(applicationId);
+    try {
+      const appDocRef = doc(db, "jobApplications", applicationId);
+      await updateDoc(appDocRef, { status: newStatus });
+      setApplications(prevApps => 
+        prevApps.map(app => app.id === applicationId ? { ...app, status: newStatus } : app)
+      );
+      toast({
+        title: "Status Updated",
+        description: `Application status changed to ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error("Error updating application status:", error);
+      toast({
+        title: "Error",
+        description: "Could not update application status.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const getApplicationStatusBadgeVariant = (status?: JobApplication['status']) => {
@@ -66,8 +103,8 @@ export default function AllJobApplicationsPage() {
       case "Applied": return "default";
       case "Screening": return "secondary";
       case "Interviewing": return "default"; // Consider a different color
-      case "Offered": return "default"; // Consider a different color (e.g. green-ish)
-      case "Hired": return "default"; // Consider a different color (e.g. strong green)
+      case "Offered": return "default"; // Olive for positive steps
+      case "Hired": return "default"; // Strong olive for success
       case "Rejected": return "destructive";
       default: return "outline";
     }
@@ -120,12 +157,12 @@ export default function AllJobApplicationsPage() {
                   {applications.map((app) => (
                     <TableRow key={app.id} className="hover:bg-muted/30">
                       <TableCell className="font-medium text-foreground">
-                        <Link href={`/dashboard/ats/jobs/${app.jobId}`} className="hover:underline">
+                        <Link href={`/dashboard/ats/jobs/${app.jobId}`} className="hover:underline text-primary">
                             {app.jobTitle}
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                         <Link href={`/dashboard/candidates/${app.candidateId}`} className="hover:underline">
+                         <Link href={`/dashboard/candidates/${app.candidateId}`} className="hover:underline text-primary">
                             {app.candidateName}
                         </Link>
                       </TableCell>
@@ -136,13 +173,32 @@ export default function AllJobApplicationsPage() {
                         <Badge variant={getApplicationStatusBadgeVariant(app.status)}>{app.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm" asChild className="rounded-md" disabled>
-                          {/* Future: Link to application detail page or quick actions */}
-                           {/* <Link href={`/dashboard/ats/applications/${app.id}`}> */}
-                           Manage (Soon)
-                           {/* </Link> */}
-                           {/* <ArrowRight className="ml-1.5 h-3.5 w-3.5" /> */}
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md"
+                              disabled={updatingStatusId === app.id}
+                            >
+                              {updatingStatusId === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-lg">
+                            <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {APPLICATION_STATUSES.map(status => (
+                              <DropdownMenuItem
+                                key={status}
+                                onClick={() => handleStatusUpdate(app.id, status)}
+                                disabled={app.status === status}
+                                className="rounded-md"
+                              >
+                                Set to {status}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -163,3 +219,5 @@ export default function AllJobApplicationsPage() {
     </div>
   );
 }
+
+    
