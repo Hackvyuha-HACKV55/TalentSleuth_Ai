@@ -9,7 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { useCandidateContext, type UnifiedCandidate } from "@/context/candidate-context";
-import { Loader2, User, Mail, FileText, Download, Briefcase, ClipboardList, FileHeart } from "lucide-react"; // Removed Edit as it wasn't used
+import { Loader2, User, Mail, FileText, Download, Briefcase, ClipboardList, FileHeart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
@@ -27,7 +27,7 @@ interface StudentApplication extends DocumentData {
 }
 
 interface CustomResumeEntry extends DocumentData {
-  id: string; // Will be the jobId
+  id: string; 
   jobTitle: string;
   generatedResumeText: string;
   createdAt: Timestamp;
@@ -35,7 +35,7 @@ interface CustomResumeEntry extends DocumentData {
 
 export default function StudentProfilePage() {
   const { user, loading: authLoading } = useAuth();
-  const { fetchCandidateByUid, loadingCandidates: contextLoading } = useCandidateContext();
+  const { fetchCandidateByUid } = useCandidateContext(); // Removed contextLoading, rely on local loading state
   const [candidateProfile, setCandidateProfile] = useState<UnifiedCandidate | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [customResumes, setCustomResumes] = useState<CustomResumeEntry[]>([]);
@@ -51,29 +51,34 @@ export default function StudentProfilePage() {
         setIsLoadingApplications(true);
         setIsLoadingCustomResumes(true);
         try {
-          // Fetch Candidate Profile
           const profile = await fetchCandidateByUid(user.uid);
           setCandidateProfile(profile);
+          setIsLoadingProfile(false); // Set loading to false after fetch attempt
 
-          // Fetch Job Applications
-          const appsQuery = query(
-            collection(db, "jobApplications"),
-            where("candidateId", "==", user.uid),
-            orderBy("applicationDate", "desc")
-          );
-          const appsSnapshot = await getDocs(appsQuery);
-          const fetchedApps = appsSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as StudentApplication));
-          setApplications(fetchedApps);
+          if (profile) { // Only fetch related data if profile exists
+            const appsQuery = query(
+              collection(db, "jobApplications"),
+              where("candidateId", "==", user.uid), // Ensure this matches how candidateId is stored
+              orderBy("applicationDate", "desc")
+            );
+            const appsSnapshot = await getDocs(appsQuery);
+            const fetchedApps = appsSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as StudentApplication));
+            setApplications(fetchedApps);
+            setIsLoadingApplications(false);
 
-          // Fetch Custom Resumes
-          // Ensure the path is correct: candidates/{userId}/customResumes
-          const customResumesQuery = query(
-            collection(db, "candidates", user.uid, "customResumes"),
-            orderBy("createdAt", "desc")
-          );
-          const customResumesSnapshot = await getDocs(customResumesQuery);
-          const fetchedCustomResumes = customResumesSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as CustomResumeEntry));
-          setCustomResumes(fetchedCustomResumes);
+            const customResumesQuery = query(
+              collection(db, "candidates", user.uid, "customResumes"),
+              orderBy("createdAt", "desc")
+            );
+            const customResumesSnapshot = await getDocs(customResumesQuery);
+            const fetchedCustomResumes = customResumesSnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as CustomResumeEntry));
+            setCustomResumes(fetchedCustomResumes);
+            setIsLoadingCustomResumes(false);
+          } else {
+            // If profile is null, no need to fetch applications or custom resumes
+            setIsLoadingApplications(false);
+            setIsLoadingCustomResumes(false);
+          }
 
         } catch (error) {
           console.error("Error fetching student profile data:", error);
@@ -82,7 +87,6 @@ export default function StudentProfilePage() {
             description: "Could not load all your profile data. Check Firestore indexes if errors persist in console.",
             variant: "destructive",
           });
-        } finally {
           setIsLoadingProfile(false);
           setIsLoadingApplications(false);
           setIsLoadingCustomResumes(false);
@@ -94,10 +98,10 @@ export default function StudentProfilePage() {
       }
     };
     loadProfileData();
-  }, [user, authLoading, fetchCandidateByUid, toast]); // toast is stable, but included for completeness if its instance changed.
+  }, [user, authLoading, fetchCandidateByUid, toast]);
 
   const getInitials = (name?: string | null) => {
-    if (!name) return "S";
+    if (!name || name.trim() === "") return "S";
     const names = name.trim().split(' ');
     if (names.length === 0 || names[0] === "") return "S";
     if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
@@ -125,7 +129,7 @@ export default function StudentProfilePage() {
     }
   };
 
-  if (authLoading || contextLoading || isLoadingProfile) {
+  if (authLoading || isLoadingProfile) { // Only wait for auth and initial profile fetch
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] p-6">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -201,7 +205,7 @@ export default function StudentProfilePage() {
 
           <div className="space-y-4 pt-6 border-t">
             <h3 className="text-xl font-semibold text-foreground flex items-center">
-               <Briefcase className="mr-2 h-5 w-5 text-primary" /> Manage Profile {/* Changed icon */}
+               <Briefcase className="mr-2 h-5 w-5 text-primary" /> Manage Profile
             </h3>
             <p className="text-sm text-muted-foreground">
               Functionality to edit your profile details and upload/update your main resume directly here will be available soon.
@@ -268,7 +272,7 @@ export default function StudentProfilePage() {
                             {app.applicationType === "custom" && (
                                 <p className="text-xs text-primary/80 italic">Applied with Custom Resume</p>
                             )}
-                             {app.applicationType === "profile" && ( // Removed app.appliedWithResumeUrl check for simplicity
+                             {app.applicationType === "profile" && ( 
                                 <p className="text-xs text-primary/80 italic">Applied with Profile Resume</p>
                             )}
                         </div>

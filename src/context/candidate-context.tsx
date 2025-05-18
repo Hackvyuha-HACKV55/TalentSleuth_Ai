@@ -5,15 +5,15 @@ import type { ReactNode} from "react";
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { ParseResumeOutput } from "@/ai/flows/resume-parsing";
 import { db } from "@/lib/firebase";
-import { collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, Timestamp, updateDoc, where } from "firebase/firestore";
+import { collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, Timestamp, updateDoc, where, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { generateResumeTextContent } from "@/lib/mock-data";
 
 export interface DigitalResume extends ParseResumeOutput {}
 
 export interface UnifiedCandidate {
-  id: string; // Firestore document ID (can be same as uid for students)
-  uid?: string; // Firebase Auth User ID
+  id: string; 
+  uid?: string; 
   name: string | null;
   email: string | null;
   phone?: string | null;
@@ -23,17 +23,15 @@ export interface UnifiedCandidate {
   certifications?: string | null;
   role?: string;
   avatarUrl?: string;
-  resumeOriginalDataUri?: string; // For recruiter uploads, temporary
+  resumeOriginalDataUri?: string; 
   resumeTextContent: string;
   topSkill?: string;
   fitScore?: number;
   justification?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
-
-  // New fields for student signup flow / enhanced profiles
-  resumeUrl?: string; // URL to the resume file in Firebase Storage
-  digitalResume?: DigitalResume; // Structured parsed resume data
+  resumeUrl?: string; 
+  digitalResume?: DigitalResume; 
 }
 
 
@@ -65,7 +63,7 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
       setLoadingCandidates(true);
       try {
         const candidatesCollectionRef = collection(db, "candidates");
-        const q = query(candidatesCollectionRef, orderBy("name"));
+        const q = query(candidatesCollectionRef, orderBy("name")); // Default sort for recruiter view
         const querySnapshot = await getDocs(q);
         const fetchedCandidates: UnifiedCandidate[] = [];
         querySnapshot.forEach((docSnap) => {
@@ -113,12 +111,12 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
 
   const addCandidate = useCallback(async (
     parsedData: ParseResumeOutput,
-    resumeOriginalDataUri: string, // This is for recruiter uploads or initial parse
+    resumeOriginalDataUri: string, 
     nameInput?: string,
     emailInput?: string,
-    uidInput?: string
+    uidInput?: string 
   ): Promise<UnifiedCandidate | null> => {
-    const candidateId = uidInput || doc(collection(db, "temp_ids")).id; // Use UID as ID if available
+    const candidateId = uidInput || doc(collection(db, "temp_ids")).id; 
     const name = nameInput || parsedData.name;
     const email = emailInput || parsedData.email;
 
@@ -141,8 +139,8 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
     const resumeTextContent = generateResumeTextContent(parsedData);
 
     const newCandidateData: UnifiedCandidate = {
-      id: candidateId,
-      uid: uidInput,
+      id: candidateId, 
+      uid: uidInput, 
       name,
       email,
       phone: parsedData.phone,
@@ -153,16 +151,16 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
       avatarUrl: `https://placehold.co/80x80.png?text=${initials}`,
       role: parsedData.experience?.split('\\n')[0]?.trim() || "Role not specified",
       topSkill: parsedData.skills?.split(',')[0]?.trim() || "Skill not specified",
-      resumeOriginalDataUri: uidInput ? undefined : resumeOriginalDataUri, // Only store for non-student (recruiter) uploads
+      resumeOriginalDataUri: uidInput ? undefined : resumeOriginalDataUri, 
       resumeTextContent,
-      digitalResume: parsedData, // Store parsed data as digitalResume for students
+      digitalResume: parsedData, 
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
     try {
       const candidateDocRef = doc(db, "candidates", candidateId);
-      await setDoc(candidateDocRef, newCandidateData);
+      await setDoc(candidateDocRef, newCandidateData); 
       setCandidates(prev => sortCandidates([newCandidateData, ...prev.filter(c => c.id !== candidateId)]));
       toast({
         title: "Candidate Added/Updated",
@@ -185,14 +183,26 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
   }, [candidates]);
 
   const fetchCandidateByUid = useCallback(async (uid: string): Promise<UnifiedCandidate | null> => {
-    const q = query(collection(db, "candidates"), where("uid", "==", uid));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const docSnap = querySnapshot.docs[0];
-      return { id: docSnap.id, ...docSnap.data() } as UnifiedCandidate;
+    if (!uid) return null;
+    try {
+      const candidateDocRef = doc(db, "candidates", uid); // Use uid as document ID
+      const docSnap = await getDoc(candidateDocRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as UnifiedCandidate;
+      } else {
+        console.log("No candidate document found for UID:", uid);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching candidate by UID:", error);
+      toast({
+        title: "Fetch Error",
+        description: "Could not fetch candidate profile by UID.",
+        variant: "destructive",
+      });
+      return null;
     }
-    return null;
-  }, []);
+  }, [toast]);
 
 
   const updateCandidateFitScore = useCallback(async (id: string, fitScore: number, justification?: string) => {
@@ -237,16 +247,19 @@ export const CandidateProvider = ({ children }: { children: ReactNode }) => {
 
   const addCandidateToLocalState = useCallback((candidate: UnifiedCandidate) => {
     setCandidates(prev => {
-      if (prev.find(c => c.id === candidate.id)) { // if exists, update it
-        return sortCandidates(prev.map(p => p.id === candidate.id ? candidate : p));
+      const existingIndex = prev.findIndex(c => c.id === candidate.id);
+      if (existingIndex > -1) { 
+        const updatedCandidates = [...prev];
+        updatedCandidates[existingIndex] = candidate;
+        return sortCandidates(updatedCandidates);
       }
-      return sortCandidates([candidate, ...prev]); // otherwise add new
+      return sortCandidates([candidate, ...prev]); 
     });
   }, []);
 
   const refreshCandidateInLocalState = useCallback((candidateId: string, updatedData: Partial<UnifiedCandidate>) => {
     setCandidates(prev => sortCandidates(
-      prev.map(c => c.id === candidateId ? { ...c, ...updatedData, id: candidateId } : c)
+      prev.map(c => c.id === candidateId ? { ...c, ...updatedData, id: candidateId } : c) // Ensure id is preserved
     ));
   }, []);
 
