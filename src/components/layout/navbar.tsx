@@ -54,11 +54,7 @@ export default function Navbar() {
                       <ListChecks className="mr-1.5 h-4 w-4" /> Job Listings
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-foreground hover:text-primary rounded-lg">
-                    <Link href="/student/profile">
-                      <UserCircle className="mr-1.5 h-4 w-4" /> My Profile
-                    </Link>
-                  </Button>
+                  {/* Profile button removed from here */}
                 </>
               ) : (
                 <Button variant="outline" size="sm" asChild className="rounded-lg">
@@ -76,7 +72,7 @@ export default function Navbar() {
           ) : (
             <>
              {/* Show Recruiter Login/Signup only if not on student auth pages */}
-             {!isStudentAuthPage && (
+             {!isStudentAuthPage && !isStudentPage && ( // Ensure student pages also don't show recruiter auth by default
                 <>
                     <Button variant="ghost" asChild size="sm" className="rounded-lg">
                         <Link href="/login" className="text-sm font-medium text-foreground hover:text-primary">
@@ -90,14 +86,22 @@ export default function Navbar() {
                     </Button>
                 </>
              )}
-              {/* Show Student Login only if not on main recruiter auth pages */}
-              {!isRecruiterAuthPage && !isStudentPage && (
+              {/* Show Student Login only if not on main recruiter auth pages AND not already on a student auth page */}
+              {!isRecruiterAuthPage && !isStudentAuthPage && (
                  <Button variant="outline" asChild size="sm" className="rounded-lg ml-2">
                     <Link href="/student/login" className="text-sm font-medium text-primary hover:text-primary/80">
                        <UserCircle className="mr-2 h-4 w-4" /> Student Portal
                     </Link>
                 </Button>
               )}
+               {/* If on recruiter auth pages, still show student portal link */}
+               {isRecruiterAuthPage && (
+                 <Button variant="outline" asChild size="sm" className="rounded-lg ml-2">
+                    <Link href="/student/login" className="text-sm font-medium text-primary hover:text-primary/80">
+                       <UserCircle className="mr-2 h-4 w-4" /> Student Portal
+                    </Link>
+                </Button>
+               )}
             </>
           )}
         </nav>
