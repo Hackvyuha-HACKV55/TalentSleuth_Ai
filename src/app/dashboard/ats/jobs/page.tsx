@@ -5,12 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy, type DocumentData } from "firebase/firestore";
-import { PlusCircle, Edit3, Archive, Loader2, ArrowRight } from "lucide-react";
+import { collection, getDocs, query, orderBy, type DocumentData, deleteDoc, doc } from "firebase/firestore";
+import { PlusCircle, Edit3, Archive, Loader2, ArrowRight, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface JobRequisition extends DocumentData {
   id: string;
@@ -23,40 +34,63 @@ interface JobRequisition extends DocumentData {
 export default function JobRequisitionsPage() {
   const [jobs, setJobs] = useState<JobRequisition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const jobsCollectionRef = collection(db, "jobRequisitions");
+      const q = query(jobsCollectionRef, orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      const fetchedJobs: JobRequisition[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        fetchedJobs.push({
+          id: doc.id,
+          title: data.title,
+          location: data.location,
+          status: data.status,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+        } as JobRequisition);
+      });
+      setJobs(fetchedJobs);
+    } catch (error) {
+      console.error("Error fetching job requisitions:", error);
+      toast({
+        title: "Error",
+        description: "Could not fetch job requisitions.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
-      try {
-        const jobsCollectionRef = collection(db, "jobRequisitions");
-        const q = query(jobsCollectionRef, orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const fetchedJobs: JobRequisition[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedJobs.push({
-            id: doc.id,
-            title: data.title,
-            location: data.location,
-            status: data.status,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
-          } as JobRequisition);
-        });
-        setJobs(fetchedJobs);
-      } catch (error) {
-        console.error("Error fetching job requisitions:", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch job requisitions.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, [toast]);
+
+  const handleDeleteJob = async (jobIdToDelete: string, jobTitle: string) => {
+    setDeletingJobId(jobIdToDelete);
+    try {
+      await deleteDoc(doc(db, "jobRequisitions", jobIdToDelete));
+      toast({
+        title: "Job Requisition Deleted",
+        description: `Successfully deleted job: ${jobTitle}.`,
+      });
+      setJobs(prevJobs => prevJobs.filter(job => job.id !== jobIdToDelete));
+    } catch (error) {
+      console.error("Error deleting job requisition:", error);
+      toast({
+        title: "Error",
+        description: "Could not delete job requisition.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingJobId(null);
+    }
+  };
 
   const getStatusBadgeVariant = (status: JobRequisition['status']) => {
     switch (status) {
@@ -126,12 +160,43 @@ export default function JobRequisitionsPage() {
                     <TableCell className="text-muted-foreground">
                       {new Date(job.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" asChild className="rounded-md">
                         <Link href={`/dashboard/ats/jobs/${job.id}`}>
-                          View/Edit <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                          View <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                         </Link>
                       </Button>
+                       <Button variant="outline" size="sm" asChild className="rounded-md">
+                        <Link href={`/dashboard/ats/jobs/${job.id}/edit`}>
+                          <Edit3 className="mr-1.5 h-3.5 w-3.5" /> Edit
+                        </Link>
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" className="rounded-md" disabled={deletingJobId === job.id}>
+                            {deletingJobId === job.id ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action will permanently delete the job requisition for "{job.title}". This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deletingJobId === job.id}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteJob(job.id, job.title)}
+                              className="bg-destructive hover:bg-destructive/80"
+                              disabled={deletingJobId === job.id}
+                            >
+                              {deletingJobId === job.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Confirm Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -152,3 +217,5 @@ export default function JobRequisitionsPage() {
     </div>
   );
 }
+
+    

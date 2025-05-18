@@ -4,10 +4,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc } from "firebase/firestore";
-import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users } from "lucide-react";
+import { doc, getDoc, type DocumentData, collection, addDoc, serverTimestamp, query, where, getDocs, Timestamp, orderBy, updateDoc, deleteDoc } from "firebase/firestore";
+import { ArrowLeft, Edit, Loader2, PackageOpen, UserPlus, Users, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCandidateContext, type UnifiedCandidate } from "@/context/candidate-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface JobRequisition extends DocumentData {
   id: string;
@@ -40,12 +51,14 @@ interface JobApplication extends DocumentData {
 export default function JobRequisitionDetailPage() {
   const params = useParams();
   const jobId = params.id as string;
+  const router = useRouter();
   const [job, setJob] = useState<JobRequisition | null>(null);
   const [applicants, setApplicants] = useState<JobApplication[]>([]);
   const [loadingJob, setLoadingJob] = useState(true);
   const [loadingApplicants, setLoadingApplicants] = useState(true);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | undefined>(undefined);
   const [isAddingApplicant, setIsAddingApplicant] = useState(false);
+  const [isDeletingJob, setIsDeletingJob] = useState(false);
 
   const { toast } = useToast();
   const { candidates: allCandidatesFromContext } = useCandidateContext();
@@ -78,6 +91,7 @@ export default function JobRequisitionDetailPage() {
               variant: "destructive",
             });
             setJob(null);
+            router.push("/dashboard/ats/jobs"); // Redirect if not found
           }
         } catch (error) {
           console.error("Error fetching job requisition:", error);
@@ -120,8 +134,9 @@ export default function JobRequisitionDetailPage() {
             description: "Job ID is missing.",
             variant: "destructive",
         });
+        router.push("/dashboard/ats/jobs");
     }
-  }, [jobId, toast]);
+  }, [jobId, toast, router]);
 
   const handleAddApplicant = async () => {
     if (!selectedCandidateId || !job) {
@@ -150,12 +165,10 @@ export default function JobRequisitionDetailPage() {
             status: "Applied"
         });
 
-        // Re-fetch to ensure data consistency after adding
         const q = query(collection(db, "jobApplications"), where("jobId", "==", jobId), orderBy("applicationDate", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedApplicants = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as JobApplication));
         setApplicants(fetchedApplicants);
-
 
         toast({ title: "Applicant Added", description: `${selectedCandidate.name} added as an applicant for ${job.title}.` });
         setSelectedCandidateId(undefined);
@@ -164,6 +177,28 @@ export default function JobRequisitionDetailPage() {
         toast({ title: "Error", description: "Could not add applicant.", variant: "destructive" });
     } finally {
         setIsAddingApplicant(false);
+    }
+  };
+
+  const handleDeleteJob = async () => {
+    if (!job) return;
+    setIsDeletingJob(true);
+    try {
+      await deleteDoc(doc(db, "jobRequisitions", job.id));
+      toast({
+        title: "Job Requisition Deleted",
+        description: `Successfully deleted job: ${job.title}.`,
+      });
+      // Note: Consider deleting related jobApplications in a real-world scenario (e.g., using a Cloud Function).
+      router.push("/dashboard/ats/jobs");
+    } catch (error) {
+      console.error("Error deleting job requisition:", error);
+      toast({
+        title: "Error",
+        description: "Could not delete job requisition.",
+        variant: "destructive",
+      });
+      setIsDeletingJob(false);
     }
   };
 
@@ -195,26 +230,30 @@ export default function JobRequisitionDetailPage() {
 
   if (loadingJob) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-6">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-xl text-muted-foreground">Loading job details...</p>
+      <div className="w-full space-y-8 py-6">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-xl text-muted-foreground">Loading job details...</p>
+        </div>
       </div>
     );
   }
 
   if (!job) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] text-center py-6">
-        <PackageOpen className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Job Requisition Not Found</h2>
-        <p className="text-muted-foreground mb-6">
-          The job requisition you are looking for either does not exist or could not be loaded.
-        </p>
-        <Button asChild variant="outline" className="rounded-lg">
-          <Link href="/dashboard/ats/jobs">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Job Requisitions
-          </Link>
-        </Button>
+      <div className="w-full space-y-8 py-6">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] text-center">
+          <PackageOpen className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Job Requisition Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            The job requisition you are looking for either does not exist or could not be loaded.
+          </p>
+          <Button asChild variant="outline" className="rounded-lg">
+            <Link href="/dashboard/ats/jobs">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Job Requisitions
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -252,8 +291,10 @@ export default function JobRequisitionDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Jobs List
             </Link>
           </Button>
-           <Button variant="default" className="rounded-lg flex-grow sm:flex-grow-0" disabled>
-            <Edit className="mr-2 h-4 w-4" /> Edit Job (Soon)
+           <Button variant="default" asChild className="rounded-lg flex-grow sm:flex-grow-0">
+            <Link href={`/dashboard/ats/jobs/${job.id}/edit`}>
+              <Edit className="mr-2 h-4 w-4" /> Edit Job
+            </Link>
           </Button>
         </div>
       </div>
@@ -279,6 +320,31 @@ export default function JobRequisitionDetailPage() {
             <Separator className="my-4" />
             <DetailItem label="Date Created" value={job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'} />
         </CardContent>
+        <CardFooter className="p-6 border-t">
+           <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="rounded-lg" disabled={isDeletingJob}>
+                {isDeletingJob ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                {isDeletingJob ? "Deleting..." : "Delete Job"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the job requisition for "{job.title}". 
+                  Related applications will not be deleted automatically.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeletingJob}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteJob} className="bg-destructive hover:bg-destructive/80" disabled={isDeletingJob}>
+                  {isDeletingJob ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Yes, delete job"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardFooter>
       </Card>
 
       <Card className="w-full rounded-lg shadow-lg bg-card border">
@@ -362,3 +428,5 @@ export default function JobRequisitionDetailPage() {
     </div>
   );
 }
+
+    
