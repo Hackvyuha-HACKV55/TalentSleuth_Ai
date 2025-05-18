@@ -214,49 +214,16 @@ Follow these steps to get the project running on your local machine:
         ```
         Replace placeholders with your actual keys. **Remember the security implications of handling these keys.**
 
-6.  **Firebase Security Rules (Important for Firestore):**
-    *   Go to your Firebase Console -> Firestore Database -> Rules.
-    *   **For the Student Job Portal to work correctly (allowing anyone to view open jobs, and students to apply), and for recruiters to manage data, you need appropriate rules.**
-    *   **Example (use with caution, refine for production):**
-        ```
-        rules_version = '2';
-        service cloud.firestore {
-          match /databases/{database}/documents {
-            // Allow authenticated users to read/write their own data or specific collections
-            match /users/{userId}/{document=**} {
-              allow read, write: if request.auth != null && request.auth.uid == userId;
-            }
-            match /candidates/{candidateId} {
-                // Allow authenticated users (recruiters) to read/write.
-                // Students effectively write/update their own profile via the student application flow.
-                allow read, write: if request.auth != null; 
-            }
-            match /jobRequisitions/{jobId} {
-                // Public can read, only authenticated (recruiters) can create/update/delete
-                allow read: if true; // Allows anyone to read job requisitions
-                allow create, update, delete: if request.auth != null; // Recruiters need to be logged in to manage jobs
-            }
-            match /jobApplications/{applicationId} {
-                // Allow authenticated users to create applications for themselves (candidateEmail matches their auth email)
-                // Allow authenticated recruiters to read all applications.
-                allow create: if request.auth != null && request.resource.data.candidateEmail == request.auth.token.email;
-                allow read: if request.auth != null; // Simplistic for now, recruiters can read all.
-                // Add update/delete rules as needed (e.g., only recruiter can update status).
-            }
-          }
-        }
-        ```
-    *   **For production, you MUST define more granular security rules.**
 
-7.  **Firestore Composite Index (CRUCIAL for Student Job Portal):**
+
+6.  **Firestore Composite Index (CRUCIAL for Student Job Portal):**
     *   The student job listing page queries jobs by `status` and orders them by `createdAt`. This requires a composite index in Firestore.
     *   If you see errors in your browser console about a missing index when viewing `/student/jobs`, Firebase will provide a direct link to create it. Follow that link.
     *   The index fields will typically be:
         *   Collection ID: `jobRequisitions`
         *   Fields to index: `status` (Ascending), `createdAt` (Descending)
     *   Wait for the index to finish building in the Firebase console.
-
-8.  **Run Genkit Development Server:**
+7.  **Run Genkit Development Server:**
     Genkit flows run on a separate development server. Start it by running:
     ```bash
     npm run genkit:dev
@@ -267,14 +234,14 @@ Follow these steps to get the project running on your local machine:
     ```
     This server typically starts on `http://localhost:4000`. Keep this terminal window open.
 
-9.  **Run Next.js Development Server:**
+8.  **Run Next.js Development Server:**
     In a **new** terminal window or tab (while the Genkit server is still running), start the Next.js frontend application:
     ```bash
     npm run dev
     ```
     This command starts the Next.js development server, usually on `http://localhost:9002` (as configured in `package.json`).
 
-10. **Access the Application:**
+9. **Access the Application:**
     Open your web browser and navigate to:
     [http://localhost:9002](http://localhost:9002)
 
