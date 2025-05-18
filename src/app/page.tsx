@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, FileText, Users, GitCompareArrows, Search as SearchIcon, HelpCircle, Database, UploadCloud, Cpu, Eye, Target, ListChecks, Users2, Code2, Package, ArrowRight, GraduationCap } from "lucide-react"; 
+import { Check, X, FileText, Users, GitCompareArrows, Search as SearchIcon, HelpCircle, Database, UploadCloud, Cpu, Eye, Target, ListChecks, Users2, Archive as ATSIcon, Palette, FileSignature, ArrowRight, GraduationCap, Briefcase, Package, UserPlus } from "lucide-react"; // Added UserPlus
 import Link from "next/link";
 
 const coreFeatures = [
@@ -31,35 +31,57 @@ const coreFeatures = [
     description: "Automatically create role- and skill-specific interview questions.",
   },
   {
+    icon: <GraduationCap className="h-8 w-8 text-primary" />,
+    title: "Student Job Portal",
+    description: "Students can view open jobs, upload resumes, and apply easily.",
+  },
+  {
+    icon: <Palette className="h-8 w-8 text-primary" />,
+    title: "AI Custom Resumes",
+    description: "Students can generate AI-powered custom resumes tailored to specific job descriptions.",
+  },
+  {
+    icon: <ATSIcon className="h-8 w-8 text-primary" />,
+    title: "Recruiter ATS Tools",
+    description: "Manage job requisitions, track applicants, and update application statuses.",
+  },
+  {
     icon: <Database className="h-8 w-8 text-primary" />,
     title: "Firestore Data Persistence",
-    description: "All candidate data is securely stored and synced with Firebase.",
+    description: "All candidate, job, and application data is securely stored and synced with Firebase.",
   },
 ];
 
-const howItWorksSteps = [
-  { icon: <UploadCloud className="h-7 w-7 text-primary-foreground" />, step: "Upload a candidate's resume (Recruiter)" },
-  { icon: <Cpu className="h-7 w-7 text-primary-foreground" />, step: "AI parses and extracts profile details" },
-  { icon: <Eye className="h-7 w-7 text-primary-foreground" />, step: "View the candidate dossier and insights" },
-  { icon: <Target className="h-7 w-7 text-primary-foreground" />, step: "Upload a job description for fitment scoring" },
-  { icon: <ListChecks className="h-7 w-7 text-primary-foreground" />, step: "Generate personalized interview questions" },
+const howItWorksStepsRecruiter = [
+  { icon: <UploadCloud className="h-7 w-7 text-primary-foreground" />, step: "Recruiters: Upload resumes or JDs" },
+  { icon: <Cpu className="h-7 w-7 text-primary-foreground" />, step: "AI parses, analyzes, and scores" },
+  { icon: <Eye className="h-7 w-7 text-primary-foreground" />, step: "View candidate dossiers & insights" },
+  { icon: <ListChecks className="h-7 w-7 text-primary-foreground" />, step: "Manage jobs & track applications" },
 ];
+
+const howItWorksStepsStudent = [
+  { icon: <UserPlus className="h-7 w-7 text-primary-foreground" />, step: "Students: Sign Up & Upload Resume" },
+  { icon: <SearchIcon className="h-7 w-7 text-primary-foreground" />, step: "Browse open job positions" },
+  { icon: <FileSignature className="h-7 w-7 text-primary-foreground" />, step: "Apply with profile or custom AI resume" },
+  { icon: <Target className="h-7 w-7 text-primary-foreground" />, step: "Track application status" },
+];
+
 
 const userScenarios = [
   {
-    icon: <Users2 className="h-8 w-8 text-primary" />,
+    icon: <Briefcase className="h-8 w-8 text-primary" />,
     title: "For Startups & Recruiters",
-    description: "Screen multiple applicants quickly, detect inconsistencies, and automate first-round filtering.",
+    description: "Screen multiple applicants quickly, detect inconsistencies, manage job postings, and automate first-round filtering.",
   },
   {
-    icon: <GraduationCap className="h-8 w-8 text-primary" />, 
+    icon: <GraduationCap className="h-8 w-8 text-primary" />,
     title: "For Students & Job Seekers",
-    description: "Easily find and apply for open positions directly through the platform.",
+    description: "Sign up with your resume, explore open positions, and apply directly. Leverage AI to generate custom resumes tailored for specific jobs, increasing your chances of getting noticed.",
   },
   {
-    icon: <Code2 className="h-8 w-8 text-primary" />,
+    icon: <Cpu className="h-8 w-8 text-primary" />,
     title: "For Tech Hiring",
-    description: "Score developer resumes against job requirements and generate coding questions.",
+    description: "Score developer resumes against job requirements and generate coding interview questions efficiently.",
   },
 ];
 
@@ -69,6 +91,8 @@ const comparisonFeatures = [
   { feature: "Fitment Scoring", manual: false, talentsleuth: true },
   { feature: "Profile Discovery", manual: false, talentsleuth: true },
   { feature: "Auto Interview Questions", manual: false, talentsleuth: true },
+  { feature: "Custom Resume Generation (Student)", manual: false, talentsleuth: true },
+  { feature: "Basic ATS (Job Reqs & Apps)", manual: false, talentsleuth: true },
   { feature: "Data Storage & Sync", manual: false, talentsleuth: true },
 ];
 
@@ -84,7 +108,7 @@ export default function LandingPage() {
                 TalentSleuth AI – Your Virtual Talent Analyst
               </h1>
               <p className="mx-auto max-w-[750px] text-muted-foreground md:text-xl lg:text-lg xl:text-xl mb-8">
-                Streamline your hiring with AI-driven resume parsing, red flag detection, fitment analysis, and interview prep. Job seekers can find and apply for openings too!
+                Streamline your hiring with AI-driven resume parsing, fitment analysis, and interview prep. Job seekers can find and apply for openings, even generating custom resumes!
               </p>
             </div>
             <div className="flex flex-col gap-4 min-[400px]:flex-row justify-center">
@@ -95,9 +119,9 @@ export default function LandingPage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-primary text-primary hover:bg-primary/10 py-3 px-8 text-lg">
-                <Link href="/student/login"> 
+                <Link href="/student/login">
                   Student Job Portal
-                  <GraduationCap className="ml-2.5 h-5 w-5" /> 
+                  <GraduationCap className="ml-2.5 h-5 w-5" />
                 </Link>
               </Button>
             </div>
@@ -113,7 +137,7 @@ export default function LandingPage() {
               What is TalentSleuth AI?
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-lg/relaxed lg:text-base/relaxed xl:text-lg/relaxed">
-              TalentSleuth AI empowers HR teams with intelligent automation: it parses resumes, detects red flags, evaluates job fitment, and generates tailored interview questions—all securely stored using Firebase Firestore. Save time, improve quality, and hire smarter.
+              TalentSleuth AI empowers HR teams with intelligent automation: it parses resumes, detects red flags, evaluates job fitment, and generates tailored interview questions—all securely stored using Firebase Firestore. Students can discover job opportunities, apply seamlessly, and even leverage AI to create custom resumes for specific roles. Save time, improve quality, and hire smarter.
             </p>
           </div>
         </div>
@@ -153,32 +177,44 @@ export default function LandingPage() {
 
       {/* How It Works */}
       <section id="how-it-works" className="w-full py-16 md:py-24 lg:py-32 bg-background">
-        <div className="container px-4 md:px-6 space-y-10">
+        <div className="container px-4 md:px-6 space-y-16">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
             <div className="inline-block rounded-lg bg-muted px-4 py-1.5 text-sm font-medium text-primary mb-3">
-              Simple Workflow
+              Simple Workflows
             </div>
             <h2 className="text-3xl font-bold tracking-tight sm:text-5xl text-foreground mb-10">
-              How It Works
+              How It Works for Recruiters & Students
             </h2>
           </div>
-          <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-5 items-start">
-            {howItWorksSteps.map((item, index) => (
-              <div key={index} className="flex flex-col items-center text-center p-4 space-y-3">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4 shadow-md">
-                  {item.icon}
+          
+          <div>
+            <h3 className="text-2xl font-semibold tracking-tight text-center text-primary mb-8">For Recruiters</h3>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 items-start">
+              {howItWorksStepsRecruiter.map((item, index) => (
+                <div key={`recruiter-${index}`} className="flex flex-col items-center text-center p-4 space-y-3">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4 shadow-md">
+                    {item.icon}
+                  </div>
+                  <p className="font-semibold text-foreground text-lg">Step {index + 1}</p>
+                  <p className="text-sm text-muted-foreground">{item.step}</p>
                 </div>
-                <p className="font-semibold text-foreground text-lg">Step {index + 1}</p>
-                <p className="text-sm text-muted-foreground">{item.step}</p>
-              </div>
-            ))}
-             <div className="flex flex-col items-center text-center p-4 space-y-3 md:col-span-3 lg:col-start-3 lg:col-span-1">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4 shadow-md">
-                  <GraduationCap className="h-7 w-7 text-primary-foreground" />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-semibold tracking-tight text-center text-primary mb-8 mt-12">For Students</h3>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 items-start">
+              {howItWorksStepsStudent.map((item, index) => (
+                <div key={`student-${index}`} className="flex flex-col items-center text-center p-4 space-y-3">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4 shadow-md">
+                    {item.icon}
+                  </div>
+                  <p className="font-semibold text-foreground text-lg">Step {index + 1}</p>
+                  <p className="text-sm text-muted-foreground">{item.step}</p>
                 </div>
-                <p className="font-semibold text-foreground text-lg">Student Apply</p>
-                <p className="text-sm text-muted-foreground">Students find & apply for jobs</p>
-              </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -267,35 +303,37 @@ export default function LandingPage() {
                 <div className="p-4 rounded-full bg-primary/10 inline-block">
                   <Package className="h-10 w-10 text-primary" />
                 </div>
-                <CardTitle className="text-2xl text-primary font-semibold">Free Plan</CardTitle>
+                <CardTitle className="text-2xl text-primary font-semibold">Free Plan (Recruiters & Students)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 px-8 text-center">
-                <p className="text-muted-foreground">Perfect for individuals and small teams starting out.</p>
+                <p className="text-muted-foreground">Perfect for individuals, small teams, and students.</p>
                 <ul className="list-disc list-inside space-y-1.5 text-sm text-foreground text-left pl-4">
-                  <li>Upload up to 5 resumes per month</li>
-                  <li>Basic profile analysis</li>
-                  <li>Fitment scoring for one job description</li>
+                  <li>**Recruiters:** Upload up to 5 resumes per month, basic profile analysis, fitment scoring for one job, basic ATS.</li>
+                  <li>**Students:** View all jobs, apply, generate unlimited custom resumes.</li>
                 </ul>
                  <Button asChild className="w-full mt-6 bg-primary hover:bg-primary/80 text-primary-foreground rounded-xl py-3 text-base">
-                  <Link href="/signup">Start for Free</Link>
+                  <Link href="/signup">Recruiter Signup</Link>
+                </Button>
+                 <Button asChild variant="outline" className="w-full mt-3 border-primary text-primary hover:bg-primary/10 rounded-xl py-3 text-base">
+                  <Link href="/student/login">Student Portal</Link>
                 </Button>
               </CardContent>
             </Card>
             <Card className="rounded-2xl shadow-xl border border-border/50 hover:shadow-2xl transition-shadow duration-300 bg-card">
               <CardHeader className="items-center text-center pt-8 pb-4 space-y-3">
                  <div className="p-4 rounded-full bg-accent/10 inline-block">
-                  <Package className="h-10 w-10 text-accent" />
+                  <Cpu className="h-10 w-10 text-accent" />
                 </div>
-                <CardTitle className="text-2xl text-accent font-semibold">Pro Plan</CardTitle>
+                <CardTitle className="text-2xl text-accent font-semibold">Pro Plan (Recruiters)</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground !mt-1">Coming Soon!</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-8 text-center">
                 <p className="text-muted-foreground">For growing teams and power users needing more.</p>
                 <ul className="list-disc list-inside space-y-1.5 text-sm text-foreground text-left pl-4">
-                  <li>Unlimited uploads</li>
-                  <li>Advanced red flag detection</li>
-                  <li>AI-assisted interview prep</li>
-                  <li>Team access</li>
+                  <li>Unlimited resume uploads & parsing</li>
+                  <li>Advanced red flag detection & insights</li>
+                  <li>Full ATS features (Google Workspace integrations)</li>
+                  <li>Team access & collaboration tools</li>
                 </ul>
                 <Button disabled className="w-full mt-6 rounded-xl py-3 text-base">Notify Me</Button>
               </CardContent>
@@ -309,18 +347,23 @@ export default function LandingPage() {
         <div className="container grid items-center justify-center gap-6 px-4 text-center md:px-6">
           <div className="space-y-4">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl/tight text-primary mb-4">
-              Ready to streamline your hiring process or find your next role?
+              Ready to revolutionize your hiring or find your dream job?
             </h2>
             <p className="mx-auto max-w-[650px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-8">
               Try TalentSleuth AI today and discover better hiring with AI or explore new career opportunities.
             </p>
           </div>
-          <div className="mx-auto w-full max-w-md space-y-2">
+          <div className="mx-auto w-full max-w-md space-y-3">
              <Button asChild size="lg" className="w-full bg-accent hover:bg-accent/80 text-accent-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 py-3 px-8 text-lg">
                   <Link href="/signup">
-                    Get Started with TalentSleuth AI <ArrowRight className="ml-2.5 h-5 w-5" />
+                    Get Started (Recruiters) <ArrowRight className="ml-2.5 h-5 w-5" />
                   </Link>
-                </Button>
+             </Button>
+             <Button asChild variant="outline" size="lg" className="w-full border-primary text-primary hover:bg-primary/10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 py-3 px-8 text-lg">
+                  <Link href="/student/login">
+                    Explore Jobs (Students) <GraduationCap className="ml-2.5 h-5 w-5" />
+                  </Link>
+             </Button>
           </div>
         </div>
       </section>
